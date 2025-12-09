@@ -1,0 +1,6 @@
+/* App.css - Minimal app-specific styles */
+
+#root {
+    width: 100%;
+    min-height: 100vh;
+}

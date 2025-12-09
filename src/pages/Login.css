@@ -1,0 +1,129 @@
+/* Login Page Styles */
+
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xl);
+    background: linear-gradient(135deg, var(--bg) 0%, #e8e3d8 100%);
+}
+
+.login-card {
+    width: 100%;
+    max-width: 480px;
+    padding: var(--space-2xl);
+}
+
+.login-brand {
+    text-align: center;
+    margin-bottom: var(--space-2xl);
+}
+
+.login-brand h1 {
+    font-size: 2.5rem;
+    color: var(--bg-alt);
+    margin-bottom: var(--space-sm);
+    letter-spacing: 1px;
+}
+
+.login-brand p {
+    color: var(--muted);
+    font-size: 1rem;
+    margin: 0;
+}
+
+.login-form {
+    margin-bottom: var(--space-lg);
+}
+
+.login-submit-btn {
+    width: 100%;
+    font-size: 1.05rem;
+    padding: 14px 24px;
+    margin-top: var(--space-sm);
+}
+
+.login-info {
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--line);
+}
+
+.login-info p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Success State */
+.login-success {
+    text-align: center;
+    padding: var(--space-lg) 0;
+}
+
+.success-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto var(--space-lg);
+    background: rgba(90, 122, 74, 0.1);
+    border-radius: 50%;
+    color: var(--success);
+    animation: scaleIn 0.3s ease;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0);
+    }
+
+    to {
+        transform: scale(1);
+    }
+}
+
+.login-success h2 {
+    color: var(--text);
+    margin-bottom: var(--space-md);
+    font-size: 1.75rem;
+}
+
+.success-message {
+    color: var(--text);
+    font-size: 1.05rem;
+    margin-bottom: var(--space-lg);
+    line-height: 1.6;
+}
+
+.success-message strong {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.login-success .btn {
+    margin-top: var(--space-md);
+}
+
+/* Footer */
+.login-footer {
+    margin-top: var(--space-xl);
+    font-size: 0.875rem;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .login-container {
+        padding: var(--space-lg);
+    }
+
+    .login-card {
+        padding: var(--space-xl);
+    }
+
+    .login-brand h1 {
+        font-size: 2rem;
+    }
+}

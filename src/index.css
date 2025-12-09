@@ -1,0 +1,329 @@
+/* BIDXAAGUI Admin Portal - Global Styles */
+
+/* Import Merienda font (brand identity) */
+@import url('https://fonts.googleapis.com/css2?family=Merienda:wght@400;500;600;700&display=swap');
+
+/* CSS Variables - BIDXAAGUI Design System */
+:root {
+  /* Colors from landing page identity */
+  --bg: #faf7f0;           /* warm cream background */
+  --bg-alt: #4a5239;       /* deep olive (header, dark sections) */
+  --bg-alt2: #c89665;      /* café claro alternative */
+  --text: #4a5239;         /* primary text - deep olive */
+  --text-light: #faf7f0;   /* light text for dark backgrounds */
+  --muted: #7a8264;        /* secondary text - sage olive */
+  --accent: #b85c3c;       /* accent - rust orange */
+  --card: #ffffff;         /* surfaces - white for cards */
+  --line: #d4b5a8;         /* subtle borders - dusty rose */
+  
+  /* Additional admin-specific colors */
+  --success: #5a7a4a;
+  --error: #c85c4a;
+  --warning: #d4a574;
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 4px rgba(74, 82, 57, 0.08);
+  --shadow-md: 0 4px 12px rgba(74, 82, 57, 0.12);
+  --shadow-lg: 0 8px 24px rgba(74, 82, 57, 0.16);
+  
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  
+  /* Border radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 999px;
+}
+
+/* Reset & Base Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Merienda', Georgia, serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Merienda', Georgia, serif;
+  color: var(--text);
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0;
+}
+
+h1 {
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+h2 {
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+}
+
+h3 {
+  font-size: 1.25rem;
+}
+
+p {
+  margin: 0 0 var(--space-md);
+}
+
+/* Links */
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+a:hover {
+  opacity: 0.85;
+  text-decoration: underline;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: 12px 24px;
+  border: 1px solid var(--text);
+  border-radius: var(--radius-full);
+  font-family: 'Merienda', serif;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  background: transparent;
+  color: var(--text);
+  outline: none;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--text-light);
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgba(184, 92, 60, 0.3);
+}
+
+.btn-primary:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(184, 92, 60, 0.4);
+}
+
+.btn-secondary {
+  background: var(--bg-alt);
+  color: var(--text-light);
+  border-color: var(--bg-alt);
+  box-shadow: 0 2px 8px rgba(74, 82, 57, 0.3);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(74, 82, 57, 0.4);
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: var(--line);
+  color: var(--text);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--bg);
+  border-color: var(--accent);
+}
+
+/* Input Fields */
+.input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  font-family: 'Merienda', serif;
+  font-size: 1rem;
+  background: var(--card);
+  color: var(--text);
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(184, 92, 60, 0.1);
+}
+
+.input::placeholder {
+  color: var(--muted);
+}
+
+.input:disabled {
+  background: var(--bg);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Form Group */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.form-label {
+  font-weight: 500;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.form-error {
+  color: var(--error);
+  font-size: 0.875rem;
+  margin-top: var(--space-xs);
+}
+
+/* Cards */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  box-shadow: var(--shadow-md);
+}
+
+/* Container */
+.container {
+  width: min(1200px, 92%);
+  margin-inline: auto;
+  padding-block: var(--space-xl);
+}
+
+/* Loading Spinner */
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Alert Messages */
+.alert {
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-md);
+  border: 1px solid;
+  margin-bottom: var(--space-lg);
+  font-size: 0.95rem;
+}
+
+.alert-success {
+  background: rgba(90, 122, 74, 0.1);
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.alert-error {
+  background: rgba(200, 92, 74, 0.1);
+  border-color: var(--error);
+  color: var(--error);
+}
+
+.alert-info {
+  background: rgba(184, 92, 60, 0.08);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Utility Classes */
+.text-center {
+  text-align: center;
+}
+
+.text-muted {
+  color: var(--muted);
+}
+
+.mt-sm { margin-top: var(--space-sm); }
+.mt-md { margin-top: var(--space-md); }
+.mt-lg { margin-top: var(--space-lg); }
+.mt-xl { margin-top: var(--space-xl); }
+
+.mb-sm { margin-bottom: var(--space-sm); }
+.mb-md { margin-bottom: var(--space-md); }
+.mb-lg { margin-bottom: var(--space-lg); }
+.mb-xl { margin-bottom: var(--space-xl); }
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.4s ease;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  :root {
+    --space-xl: 1.5rem;
+    --space-2xl: 2rem;
+  }
+  
+  .container {
+    width: 90%;
+  }
+  
+  .card {
+    padding: var(--space-lg);
+  }
+}
