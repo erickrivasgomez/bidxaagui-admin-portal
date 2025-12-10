@@ -148,6 +148,7 @@ const EditionPreview: React.FC = () => {
                     height: pageHeight
                 }}>
                     <HTMLFlipBook
+                        key={isMobile ? 'mobile' : 'desktop'}
                         width={Math.floor(pageWidth)}
                         height={Math.floor(pageHeight)}
                         size={isMobile ? "fixed" : "stretch"}
@@ -155,7 +156,7 @@ const EditionPreview: React.FC = () => {
                         maxWidth={1000}
                         minHeight={400}
                         maxHeight={1414}
-                        maxShadowOpacity={0.5}
+                        maxShadowOpacity={isMobile ? 0.2 : 0.5}
                         showCover={true}
                         mobileScrollSupport={true}
                         onFlip={onFlip}

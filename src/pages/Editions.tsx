@@ -128,12 +128,9 @@ const Editions: React.FC = () => {
                 const ctx = canvas.getContext('2d');
                 if (!ctx) throw new Error('No se pudo crear contexto de canvas');
 
-                // We need to split: Left = Page N, Right = Page N+1
-                // For first image (i=0): Users says "From the first page, only interest in left half... right half must be discarded"
-
+                // Smart Processing: Check if Spread (Double) or Single Page
                 const width = imgBitmap.width;
                 const height = imgBitmap.height;
-                const halfWidth = Math.floor(width / 2);
 
                 // Helper to crop and upload
                 const processCrop = async (x: number, w: number, pageNum: number, isCover: boolean) => {
@@ -146,7 +143,6 @@ const Editions: React.FC = () => {
                         canvas.toBlob(async (blob) => {
                             if (!blob) return reject('Error creating blob');
 
-                            // Create FormData
                             const fd = new FormData();
                             fd.append('file', blob, `page_${pageNum}.webp`);
                             fd.append('pageNumber', pageNum.toString());
@@ -158,26 +154,29 @@ const Editions: React.FC = () => {
                             } catch (e) {
                                 reject(e);
                             }
-                        }, 'image/webp', 0.85); // WebP Quality 85%
+                        }, 'image/webp', 0.85);
                     });
                 };
 
-                // Logic per user request
-                if (i === 0) {
-                    // Start: Cover (Left half only)
-                    await processCrop(0, halfWidth, globalPageCount, true);
-                    globalPageCount++;
-                    // Right half discarded
+                // Detect Spread vs Single
+                // If width is significantly larger than height (e.g. > 1.2 ratio), assume spread.
+                const isSpread = width > (height * 1.2);
+
+                if (isSpread) {
+                    // It's a double page spread -> Split logic
+                    const halfWidth = Math.floor(width / 2);
+
+                    // Left Image
+                    // If Cover (i===0), only Left is used (User Rule).
+                    await processCrop(0, halfWidth, globalPageCount++, i === 0);
+
+                    if (i > 0) {
+                        // Right Image (Page N+1) - Only if not cover
+                        await processCrop(halfWidth, width - halfWidth, globalPageCount++, false);
+                    }
                 } else {
-                    // Subsequent images: Left -> Page N, Right -> Page N+1
-
-                    // Left Half
-                    await processCrop(0, halfWidth, globalPageCount, false);
-                    globalPageCount++;
-
-                    // Right Half
-                    await processCrop(halfWidth, width - halfWidth, globalPageCount, false);
-                    globalPageCount++;
+                    // Single Page -> Upload Full Image
+                    await processCrop(0, width, globalPageCount++, i === 0);
                 }
 
                 currentStep += 2; // roughly
