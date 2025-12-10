@@ -3,16 +3,24 @@ import Login from './pages/Login';
 import VerifyMagicLink from './pages/VerifyMagicLink';
 import Dashboard from './pages/Dashboard';
 import Subscribers from './pages/Subscribers';
+import Editions from './pages/Editions';
+import Campaigns from './pages/Campaigns';
 import ProtectedRoute from './components/ProtectedRoute';
+import PublicOnlyRoute from './components/PublicOnlyRoute';
+import { useAuthStore } from './store/authStore';
 import './App.css';
 
 function App() {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/auth/verify" element={<VerifyMagicLink />} />
+        {/* Public Routes (Redirect to Dashboard if authenticated) */}
+        <Route element={<PublicOnlyRoute />}>
+          <Route path="/login" element={<Login />} />
+          <Route path="/auth/verify" element={<VerifyMagicLink />} />
+        </Route>
 
         {/* Protected Routes */}
         <Route
@@ -31,12 +39,34 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/editions"
+          element={
+            <ProtectedRoute>
+              <Editions />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/campaigns"
+          element={
+            <ProtectedRoute>
+              <Campaigns />
+            </ProtectedRoute>
+          }
+        />
 
-        {/* Default redirect */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
-
-        {/* 404 - redirect to login */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        {/* Default/Catch-all Redirect */}
+        <Route
+          path="*"
+          element={
+            isAuthenticated ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

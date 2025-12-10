@@ -44,6 +44,13 @@ api.interceptors.response.use(
 // AUTH ENDPOINTS
 // ============================================
 
+export interface APIResponse<T = any> {
+    success: boolean;
+    message?: string;
+    data?: T;
+    error?: string;
+}
+
 interface MagicLinkResponse {
     success: boolean;
     message: string;
@@ -72,6 +79,12 @@ export const authAPI = {
     // Verify magic link token
     verifyMagicLink: async (token: string): Promise<VerifyMagicLinkResponse> => {
         const response = await api.get(`/api/auth/magic-link/verify?token=${token}`);
+        return response.data;
+    },
+
+    // Subscribe (Public/Admin use)
+    subscribeNewsletter: async (email: string, name?: string): Promise<{ success: boolean }> => {
+        const response = await api.post('/api/newsletter/subscribe', { email, name });
         return response.data;
     },
 };
@@ -114,6 +127,42 @@ export interface StatsResponse {
         recentGrowth: Array<{ date: string; count: number }>;
     };
 }
+
+// Editions API
+export interface Edition {
+    id: string;
+    titulo: string;
+    descripcion?: string;
+    cover_url?: string;
+    fecha?: string;
+    publicada: number;
+    created_at: string;
+}
+
+export const editionsAPI = {
+    getAll: async () => {
+        const response = await api.get<APIResponse<Edition[]>>('/api/admin/editions');
+        return response.data.data!;
+    },
+    create: async (data: { titulo: string; descripcion: string; fecha: string }) => {
+        console.log('Creating edition, sending request to /api/admin/editions with', data);
+        const response = await api.post<APIResponse<{ id: string }>>('/api/admin/editions', data);
+        return response.data.data!;
+    },
+    delete: async (id: string) => {
+        await api.delete(`/api/admin/editions/${id}`);
+    },
+    uploadPage: async (id: string, formData: FormData) => {
+        const response = await api.post<APIResponse>(`/api/admin/editions/${id}/pages`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        return response.data;
+    },
+    getPages: async (id: string) => {
+        const response = await api.get<APIResponse<Array<{ id: string; imagen_url: string; numero: number }>>>(`/api/admin/editions/${id}/pages`);
+        return response.data.data!;
+    }
+};
 
 export const subscribersAPI = {
     // Get all subscribers with pagination and search

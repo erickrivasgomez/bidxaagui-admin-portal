@@ -1,31 +1,16 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import AdminHeader from '../components/AdminHeader';
 import './Dashboard.css';
 
 const Dashboard: React.FC = () => {
     const navigate = useNavigate();
-    const { user, logout } = useAuthStore();
-
-    const handleLogout = () => {
-        logout();
-        navigate('/login');
-    };
+    const { user } = useAuthStore();
 
     return (
         <div className="dashboard-container">
-            {/* Header */}
-            <header className="dashboard-header">
-                <div className="header-content">
-                    <h1>BIDXAAGUI</h1>
-                    <div className="header-actions">
-                        <span className="user-email">{user?.email}</span>
-                        <button onClick={handleLogout} className="btn btn-ghost">
-                            Cerrar Sesión
-                        </button>
-                    </div>
-                </div>
-            </header>
+            <AdminHeader />
 
             {/* Main Content */}
             <main className="dashboard-main">
@@ -48,28 +33,23 @@ const Dashboard: React.FC = () => {
                             <p className="text-muted">Gestionar suscriptores</p>
                         </div>
 
-                        <div className="dashboard-card card">
+                        <div
+                            className="dashboard-card card clickable"
+                            onClick={() => navigate('/editions')}
+                        >
                             <h3>📚 Ediciones</h3>
                             <p className="card-value">-</p>
                             <p className="text-muted">Próximamente</p>
                         </div>
 
-                        <div className="dashboard-card card">
+                        <div
+                            className="dashboard-card card clickable"
+                            onClick={() => navigate('/campaigns')}
+                        >
                             <h3>✉️ Campañas</h3>
                             <p className="card-value">-</p>
                             <p className="text-muted">Próximamente</p>
                         </div>
-                    </div>
-
-                    {/* Info Box */}
-                    <div className="info-box card mt-xl">
-                        <h3>🎯 Próximos pasos</h3>
-                        <ul className="info-list">
-                            <li>✅ Autenticación implementada</li>
-                            <li>✅ Gestión de suscriptores (completa)</li>
-                            <li>⏳ Gestión de ediciones (en desarrollo)</li>
-                            <li>⏳ Editor de emails (en desarrollo)</li>
-                        </ul>
                     </div>
                 </div>
             </main>

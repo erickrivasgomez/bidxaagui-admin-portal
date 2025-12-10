@@ -1,0 +1,289 @@
+/* Editions Page - Reuse Subscribers design */
+
+.editions-page {
+    min-height: 100vh;
+    background-color: var(--bg-sand);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding-bottom: 3rem;
+    color: var(--text-olive);
+}
+
+.editions-header {
+    background-color: rgba(250, 247, 240, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--line-rose);
+}
+
+.editions-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+/* Page Header */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    background: var(--white);
+    padding: 1.25rem 2rem;
+    border-radius: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.header-left-group {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.page-header h2 {
+    margin: 0;
+    color: var(--bg-olive);
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    font-family: "Merienda", serif;
+}
+
+.page-header .subtitle {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+/* Reuse buttons from global or create specific ones if needed, 
+   but for consistency we can use the same classes as Subscribers 
+   if we include this CSS file OR just redefine them here. */
+
+.btn-primary-ios {
+    background: var(--accent-rust);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(184, 92, 60, 0.3);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary-ios:hover {
+    background: #a04e32;
+    transform: scale(1.02);
+}
+
+.btn-primary-ios:disabled {
+    background: #ccc;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Table Section */
+.table-container {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.editions-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.editions-table th {
+    background: #fafafa;
+    padding: 1rem 1.5rem;
+    text-align: left;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #86868b;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.editions-table td {
+    padding: 1.25rem 1.5rem;
+    font-size: 0.95rem;
+    color: #1d1d1f;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    vertical-align: middle;
+}
+
+.editions-table tr:hover td {
+    background: #fbfbfd;
+}
+
+.edition-title {
+    font-weight: 600;
+    color: var(--bg-olive);
+    display: block;
+}
+
+.edition-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.btn-delete {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0.5rem;
+    border-radius: 8px;
+    opacity: 0.6;
+    transition: all 0.2s;
+}
+
+.btn-delete:hover {
+    background: rgba(255, 59, 48, 0.1);
+    opacity: 1;
+    color: #ff3b30;
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(5px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+}
+
+.modal-content {
+    background: white;
+    width: 90%;
+    max-width: 600px;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    transform: scale(0.95);
+    animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--bg-olive);
+    font-family: "Merienda", serif;
+}
+
+.close-btn {
+    background: #f5f5f7;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 1.25rem;
+    color: #86868b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.input-ios {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    background: #fbfbfd;
+    transition: all 0.2s;
+    margin-bottom: 1rem;
+}
+
+.input-ios:focus {
+    outline: none;
+    background: white;
+    border-color: var(--accent-rust);
+    box-shadow: 0 0 0 4px rgba(184, 92, 60, 0.1);
+}
+
+.file-drop-area {
+    border: 2px dashed var(--line-rose);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    background: #faf7f0;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 1rem;
+}
+
+.file-drop-area:hover {
+    background: white;
+    border-color: var(--accent-rust);
+}
+
+.progress-bar-container {
+    height: 6px;
+    background: #eee;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: var(--accent-rust);
+    transition: width 0.3s ease;
+}
+
+.upload-status {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* Animations included via keyframes if needed, typically global */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scaleIn {
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
