@@ -1,11 +1,14 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import HTMLFlipBook from 'react-pageflip';
 import { editionsAPI, type Edition } from '../services/api';
 import './EditionPreview.css';
 
-const EditionPreview: React.FC = () => {
+interface EditionPreviewProps {
+    isPublic?: boolean;
+}
+
+const EditionPreview: React.FC<EditionPreviewProps> = ({ isPublic = false }) => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
 
@@ -19,10 +22,26 @@ const EditionPreview: React.FC = () => {
     const bookRef = useRef<any>(null);
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-
-    // Responsive State
-    // We default to true because most admin work is desktop, but useLayoutEffect could refine
     const [isMobile, setIsMobile] = useState(false);
+
+    // Handle close for public preview
+    const handleClose = useCallback(() => {
+        if (window.opener) {
+            window.close();
+        } else {
+            window.history.back();
+        }
+    }, []);
+
+    // Add fullscreen class to body when in public mode
+    useEffect(() => {
+        if (isPublic) {
+            document.body.classList.add('public-preview');
+            return () => {
+                document.body.classList.remove('public-preview');
+            };
+        }
+    }, [isPublic]);
 
     // Initial Fetch
     useEffect(() => {
@@ -30,11 +49,6 @@ const EditionPreview: React.FC = () => {
             if (!id) return;
             try {
                 setLoading(true);
-                // We need edition metadata and pages. 
-                // Currently API doesn't have "getOne" public efficient endpoint, 
-                // but we can list all and find (not efficient but works for now) 
-                // OR ideally add getEdition(id) to API.
-                // Re-using getAll for simplicity as per previous patterns.
                 const allEditions = await editionsAPI.getAll();
                 const found = allEditions.find(e => e.id === id);
 
@@ -70,6 +84,10 @@ const EditionPreview: React.FC = () => {
     // Keyboard Navigation
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && isPublic) {
+                handleClose();
+                return;
+            }
             if (e.key === 'ArrowLeft') {
                 bookRef.current?.pageFlip()?.flipPrev();
             } else if (e.key === 'ArrowRight') {
@@ -78,7 +96,7 @@ const EditionPreview: React.FC = () => {
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, []);
+    }, [isPublic, handleClose]);
 
     const onFlip = useCallback((e: any) => {
         setCurrentPage(e.data);
@@ -91,78 +109,66 @@ const EditionPreview: React.FC = () => {
     if (loading) return <div className="preview-loading">Cargando revista...</div>;
     if (error || !edition) return <div className="preview-error">{error}</div>;
 
-    // Dimensions calculation
-    // Landscape: Double page
-    // Portrait: Single page
-    // We want to maximize space.
-    // Fixed aspect ratio usually A4 (210x297) -> 0.707
-    // Container height is roughly window height - header (60px) - padding.
-    const containerH = window.innerHeight - 80;
-    const containerW = window.innerWidth - 40;
-
-    // Ideal page dimensions
-    // Mobile: W = H * 0.7
-    // Desktop: W = (H * 0.7) but we show 2, so total W = H * 1.4
-
-    let pageHeight = containerH;
-    let pageWidth = pageHeight * 0.70;
+    // Calculate dimensions
+    const containerH = window.innerHeight - (isPublic ? 0 : 80);
+    const containerW = window.innerWidth - (isPublic ? 0 : 40);
+    let pageHeight = containerH * (isPublic ? 0.9 : 0.8);
+    let pageWidth = pageHeight * 0.7;
 
     // Adjust if width is constraint
     if (!isMobile) {
-        // Double page check
         if ((pageWidth * 2) > containerW) {
-            // Width is limiter
             pageWidth = (containerW / 2);
-            pageHeight = pageWidth / 0.70;
+            pageHeight = pageWidth / 0.7;
         }
     } else {
-        // Single page check
         if (pageWidth > containerW) {
-            pageWidth = containerW;
-            pageHeight = pageWidth / 0.70;
+            pageWidth = containerW * 0.9;
+            pageHeight = pageWidth / 0.7;
         }
     }
 
     return (
-        <div className="preview-container">
-            {/* Header */}
-            <div className="preview-header">
-                <div className="header-left">
+        <div className={`preview-container ${isPublic ? 'public' : ''}`}>
+            {isPublic && (
+                <button 
+                    className="close-preview"
+                    onClick={handleClose}
+                    aria-label="Cerrar vista previa"
+                >
+                    &times;
+                </button>
+            )}
+            
+            {!isPublic && (
+                <div className="preview-header">
                     <button onClick={() => navigate('/editions')} className="btn-back">
                         ← Volver a Ediciones
                     </button>
-                    <span className="edition-title-preview">{edition.titulo}</span>
-                </div>
-                <div className="header-right">
+                    <span className="edition-title">{edition.titulo}</span>
                     <button onClick={handleDownload} className="btn-download">
                         Descargar PDF
                     </button>
                 </div>
-            </div>
+            )}
 
-            {/* Stage */}
             <div className="preview-stage">
-                {/* Book Wrapper */}
-                <div className="book-wrapper" style={{
-                    width: isMobile ? pageWidth : pageWidth * 2,
-                    height: pageHeight
-                }}>
+                <div className="book-wrapper">
                     <HTMLFlipBook
-                        key={isMobile ? 'mobile' : 'desktop'}
-                        width={Math.floor(pageWidth)}
-                        height={Math.floor(pageHeight)}
+                        width={pageWidth}
+                        height={pageHeight}
                         size={isMobile ? "fixed" : "stretch"}
                         minWidth={300}
                         maxWidth={1000}
                         minHeight={400}
                         maxHeight={1414}
-                        maxShadowOpacity={isMobile ? 0.2 : 0.5}
+                        maxShadowOpacity={0.5}
                         showCover={true}
                         mobileScrollSupport={true}
                         onFlip={onFlip}
                         ref={bookRef}
-                        className="flipbook-instance"
-                        style={{ margin: '0 auto' }}
+                        className="flipbook"
+                        style={{}}
                         startPage={0}
                         drawShadow={true}
                         flippingTime={1000}
@@ -175,7 +181,7 @@ const EditionPreview: React.FC = () => {
                         showPageCorners={true}
                         disableFlipByClick={false}
                     >
-                        {/* Cover (Page 0) */}
+                        {/* Cover */}
                         <div className="page page-cover" data-density="hard">
                             <div className="page-content">
                                 {pages[0] && (
@@ -202,7 +208,7 @@ const EditionPreview: React.FC = () => {
                             </div>
                         ))}
 
-                        {/* Back Cover (Last Page) - Optional, adds stability */}
+                        {/* Back Cover */}
                         <div className="page page-cover" data-density="hard">
                             <div className="page-content back-cover">
                                 <div className="brand-mark">BIDXAAGUI</div>
@@ -211,7 +217,7 @@ const EditionPreview: React.FC = () => {
                     </HTMLFlipBook>
                 </div>
 
-                {/* Nav Controls (Floating) */}
+                {/* Navigation Arrows */}
                 <button
                     className="preview-nav prev"
                     onClick={() => bookRef.current?.pageFlip()?.flipPrev()}
@@ -226,9 +232,11 @@ const EditionPreview: React.FC = () => {
                 </button>
             </div>
 
-            <div className="preview-footer">
-                Página {currentPage + 1} de {totalPages + 2 /* + cover/back */}
-            </div>
+            {!isPublic && (
+                <div className="preview-footer">
+                    Página {currentPage + 1} de {pages.length + 1} {/* +1 for cover */}
+                </div>
+            )}
         </div>
     );
 };

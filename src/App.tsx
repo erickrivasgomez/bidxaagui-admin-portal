@@ -48,11 +48,21 @@ function App() {
             </ProtectedRoute>
           }
         />
+        {/* Public Preview Route */}
+        <Route
+          path="/public/editions/:id/preview"
+          element={<EditionPreview isPublic={true} />}
+        />
+        <Route
+          path="/public/editions/:id/preview"
+          element={<EditionPreview isPublic={true} />}
+        />
+        {/* Protected Preview Route */}
         <Route
           path="/editions/:id/preview"
           element={
             <ProtectedRoute>
-              <EditionPreview />
+              <EditionPreview isPublic={false} />
             </ProtectedRoute>
           }
         />
