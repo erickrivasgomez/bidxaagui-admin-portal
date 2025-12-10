@@ -309,40 +309,68 @@ const Editions: React.FC = () => {
             {isLightboxOpen && (
                 <div className="lightbox-overlay" onClick={() => setIsLightboxOpen(false)}>
                     <div className="lightbox-content" onClick={e => e.stopPropagation()}>
+
+                        {/* Header Controls */}
                         <div className="lightbox-header">
-                            <h3>{viewingEditionTitle}</h3>
+                            <h3 className="lightbox-title">{viewingEditionTitle}</h3>
                             <button onClick={() => setIsLightboxOpen(false)} className="close-btn-light">×</button>
                         </div>
 
-                        <div className="lightbox-body">
+                        {/* Main Stage */}
+                        <div className="lightbox-stage">
+                            {/* Prev Button */}
                             <button
                                 className="nav-btn prev"
-                                onClick={() => setLightboxIndex(i => Math.max(0, i - 1))}
+                                onClick={(e) => { e.stopPropagation(); setLightboxIndex(i => Math.max(0, i - 1)); }}
                                 disabled={lightboxIndex === 0}
-                            >‹</button>
+                            >
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
+                            </button>
 
-                            <div className="page-display">
-                                {/* NOTE: In production, we need a way to sign URLs or make bucket public. 
-                                    Assuming bucket is public for now or worker serves them.
-                                    We'll use a placeholder logic for URL if not full absolute path.
-                                */}
+                            {/* Image Container */}
+                            <div className="image-wrapper">
                                 <img
                                     src={`${import.meta.env.VITE_API_URL || 'http://localhost:8787'}/api/images/${pages[lightboxIndex]?.imagen_url}`}
                                     alt={`Página ${pages[lightboxIndex]?.numero}`}
-                                    className="page-image"
+                                    className="main-image"
                                     onError={(e) => { e.currentTarget.src = 'https://placehold.co/400x600?text=Error+Loading'; }}
                                 />
-                                <div className="page-counter">
-                                    Página {lightboxIndex + 1} de {pages.length}
-                                </div>
                             </div>
 
+                            {/* Next Button */}
                             <button
                                 className="nav-btn next"
-                                onClick={() => setLightboxIndex(i => Math.min(pages.length - 1, i + 1))}
+                                onClick={(e) => { e.stopPropagation(); setLightboxIndex(i => Math.min(pages.length - 1, i + 1)); }}
                                 disabled={lightboxIndex === pages.length - 1}
-                            >›</button>
+                            >
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
+                            </button>
                         </div>
+
+                        {/* Pagination Info */}
+                        <div className="lightbox-info">
+                            Página {lightboxIndex + 1} de {pages.length}
+                        </div>
+
+                        {/* Thumbnails Strip */}
+                        <div className="thumbnails-strip">
+                            <div className="thumbnails-track">
+                                {pages.map((page, idx) => (
+                                    <div
+                                        key={page.id}
+                                        className={`thumb-item ${idx === lightboxIndex ? 'active' : ''}`}
+                                        onClick={(e) => { e.stopPropagation(); setLightboxIndex(idx); }}
+                                    >
+                                        <img
+                                            src={`${import.meta.env.VITE_API_URL || 'http://localhost:8787'}/api/images/${page.imagen_url}`}
+                                            loading="lazy"
+                                        />
+                                        <div className="thumb-num">{idx + 1}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             )}
