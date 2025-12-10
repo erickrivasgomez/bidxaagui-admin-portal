@@ -2,7 +2,20 @@ import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 
 // API base URL from environment variable
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8787';
+// API base URL configuration
+let API_URL = import.meta.env.VITE_API_URL;
+
+// Fallback logic if env var is missing but we are clearly in production
+if (!API_URL) {
+    if (typeof window !== 'undefined' &&
+        (window.location.hostname.includes('bidxaagui.com') || window.location.hostname.includes('pages.dev'))) {
+        API_URL = 'https://api.bidxaagui.com';
+    } else {
+        API_URL = 'http://localhost:8787';
+    }
+}
+
+console.log('Using API URL:', API_URL);
 
 // Create axios instance
 const api = axios.create({
