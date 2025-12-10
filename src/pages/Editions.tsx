@@ -292,6 +292,14 @@ const Editions: React.FC = () => {
                                                 </span>
                                             </td>
                                             <td>
+                                                <button
+                                                    onClick={() => window.open(`/editions/${edition.id}/preview`, '_blank')}
+                                                    className="btn-action"
+                                                    title="Previsualizar Flipbook"
+                                                    style={{ marginRight: '8px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}
+                                                >
+                                                    👁️
+                                                </button>
                                                 <button onClick={() => handleDelete(edition.id)} className="btn-delete" title="Eliminar">
                                                     🗑️
                                                 </button>

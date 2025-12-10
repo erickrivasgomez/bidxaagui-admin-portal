@@ -4,6 +4,7 @@ import VerifyMagicLink from './pages/VerifyMagicLink';
 import Dashboard from './pages/Dashboard';
 import Subscribers from './pages/Subscribers';
 import Editions from './pages/Editions';
+import EditionPreview from './pages/EditionPreview';
 import Campaigns from './pages/Campaigns';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicOnlyRoute from './components/PublicOnlyRoute';
@@ -44,6 +45,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Editions />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/editions/:id/preview"
+          element={
+            <ProtectedRoute>
+              <EditionPreview />
             </ProtectedRoute>
           }
         />
