@@ -180,7 +180,7 @@ const EditionPreview: React.FC = () => {
                             <div className="page-content">
                                 {pages[0] && (
                                     <img
-                                        src={`${import.meta.env.VITE_API_URL || 'http://localhost:8787'}/api/images/${pages[0].imagen_url}`}
+                                        src={`${import.meta.env.VITE_API_URL || (window.location.hostname.includes('bidxaagui.com') ? 'https://api.bidxaagui.com' : 'http://localhost:8787')}/api/images/${pages[0].imagen_url}`}
                                         alt="Portada"
                                         className="page-image"
                                     />
@@ -193,7 +193,7 @@ const EditionPreview: React.FC = () => {
                             <div key={page.id} className="page">
                                 <div className="page-content">
                                     <img
-                                        src={`${import.meta.env.VITE_API_URL || 'http://localhost:8787'}/api/images/${page.imagen_url}`}
+                                        src={`${import.meta.env.VITE_API_URL || (window.location.hostname.includes('bidxaagui.com') ? 'https://api.bidxaagui.com' : 'http://localhost:8787')}/api/images/${page.imagen_url}`}
                                         alt={`Página ${page.numero}`}
                                         className="page-image"
                                     />
