@@ -16,8 +16,8 @@ const Subscribers: React.FC = () => {
 
     // Search and sort state
     const [search, setSearch] = useState('');
-    const [sortBy, setSortBy] = useState('subscribed_at');
-    const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('DESC');
+    const [sortBy, setSortBy] = useState('name');
+    const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
 
     // Stats state
     const [stats, setStats] = useState({
@@ -344,6 +344,15 @@ const Subscribers: React.FC = () => {
                                     <tr>
                                         <th
                                             onClick={() => {
+                                                setSortBy('name');
+                                                setSortOrder(sortOrder === 'ASC' ? 'DESC' : 'ASC');
+                                            }}
+                                            className="sortable"
+                                        >
+                                            Nombre {sortBy === 'name' && (sortOrder === 'ASC' ? '↑' : '↓')}
+                                        </th>
+                                        <th
+                                            onClick={() => {
                                                 setSortBy('email');
                                                 setSortOrder(sortOrder === 'ASC' ? 'DESC' : 'ASC');
                                             }}
@@ -351,7 +360,6 @@ const Subscribers: React.FC = () => {
                                         >
                                             Email {sortBy === 'email' && (sortOrder === 'ASC' ? '↑' : '↓')}
                                         </th>
-                                        <th>Nombre</th>
                                         <th
                                             onClick={() => {
                                                 setSortBy('subscribed_at');
@@ -367,8 +375,8 @@ const Subscribers: React.FC = () => {
                                 <tbody>
                                     {subscribers.map((sub) => (
                                         <tr key={sub.id}>
+                                            <td style={{ fontWeight: 500 }}>{sub.name || '-'}</td>
                                             <td className="email-cell">{sub.email}</td>
-                                            <td>{sub.name || '-'}</td>
                                             <td>{formatDate(sub.subscribed_at)}</td>
                                             <td>
                                                 <button
