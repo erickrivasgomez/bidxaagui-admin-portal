@@ -159,12 +159,12 @@ const Campaigns: React.FC = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {campaigns.length === 0 ? (
+                                        {(campaigns || []).length === 0 ? (
                                             <tr>
                                                 <td colSpan={5} className="text-center">No hay campañas registradas.</td>
                                             </tr>
                                         ) : (
-                                            campaigns.map(campaign => (
+                                            (campaigns || []).map(campaign => (
                                                 <tr key={campaign.id}>
                                                     <td>
                                                         <div className="campaign-subject">{campaign.subject}</div>
