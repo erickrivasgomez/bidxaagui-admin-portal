@@ -128,10 +128,23 @@ const EditionPreview: React.FC<EditionPreviewProps> = ({ isPublic = false }) => 
         }
     }
 
+    // Validate dimensions before rendering flipbook
+    const hasValidDimensions = pageWidth > 0 && pageHeight > 0 && !isNaN(pageWidth) && !isNaN(pageHeight);
+
+    // Set minimum dimensions if needed
+    if (hasValidDimensions) {
+        pageWidth = Math.max(pageWidth, 300);
+        pageHeight = Math.max(pageHeight, 400);
+    }
+
+    if (!hasValidDimensions) {
+        return <div className="preview-loading">Inicializando lector...</div>;
+    }
+
     return (
         <div className={`preview-container ${isPublic ? 'public' : ''}`}>
             {isPublic && (
-                <button 
+                <button
                     className="close-preview"
                     onClick={handleClose}
                     aria-label="Cerrar vista previa"
@@ -139,7 +152,7 @@ const EditionPreview: React.FC<EditionPreviewProps> = ({ isPublic = false }) => 
                     &times;
                 </button>
             )}
-            
+
             {!isPublic && (
                 <div className="preview-header">
                     <button onClick={() => navigate('/editions')} className="btn-back">
