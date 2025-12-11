@@ -17,17 +17,17 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public Preview Route - DEBE estar ANTES del catch-all */}
+        <Route
+          path="/public/editions/:id/preview"
+          element={<EditionPreview isPublic={true} />}
+        />
         {/* Public Routes (Redirect to Dashboard if authenticated) */}
         <Route element={<PublicOnlyRoute />}>
           <Route path="/login" element={<Login />} />
           <Route path="/auth/verify" element={<VerifyMagicLink />} />
         </Route>
 
-        {/* Public Preview Route - DEBE estar ANTES del catch-all */}
-        <Route
-          path="/public/editions/:id/preview"
-          element={<EditionPreview isPublic={true} />}
-        />
 
         {/* Protected Routes */}
         <Route
