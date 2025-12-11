@@ -248,8 +248,8 @@ export interface Campaign {
 
 export const campaignsAPI = {
     getAll: async () => {
-        const response = await api.get<APIResponse<Campaign[]>>('/api/admin/campaigns');
-        return response.data.data!;
+        const response = await api.get<Campaign[]>('/api/admin/campaigns');
+        return response.data;
     },
     create: async (data: { subject: string; preview_text?: string; content: string }) => {
         const response = await api.post<APIResponse<Campaign>>('/api/admin/campaigns', data);
