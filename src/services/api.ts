@@ -231,4 +231,40 @@ export const emailsAPI = {
     // history: async () => { ... },
 };
 
+// Campaigns API
+export interface Campaign {
+    id: string;
+    subject: string;
+    preview_text?: string;
+    content: string;
+    status: 'draft' | 'scheduled' | 'sending' | 'sent' | 'failed';
+    sent_at?: string;
+    total_recipients: number;
+    successful_sends: number;
+    failed_sends: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export const campaignsAPI = {
+    getAll: async () => {
+        const response = await api.get<APIResponse<Campaign[]>>('/api/admin/campaigns');
+        return response.data.data!;
+    },
+    create: async (data: { subject: string; preview_text?: string; content: string }) => {
+        const response = await api.post<APIResponse<Campaign>>('/api/admin/campaigns', data);
+        return response.data.data!;
+    },
+    update: async (id: string, data: { subject?: string; preview_text?: string; content?: string }) => {
+        await api.put(`/api/admin/campaigns/${id}`, data);
+    },
+    delete: async (id: string) => {
+        await api.delete(`/api/admin/campaigns/${id}`);
+    },
+    send: async (id: string) => {
+        const response = await api.post<APIResponse>(`/api/admin/campaigns/${id}/send`);
+        return response.data;
+    }
+};
+
 export default api;

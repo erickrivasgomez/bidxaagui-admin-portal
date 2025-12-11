@@ -38,8 +38,8 @@ const Dashboard: React.FC = () => {
                             onClick={() => navigate('/editions')}
                         >
                             <h3>📚 Ediciones</h3>
-                            <p className="card-value">-</p>
-                            <p className="text-muted">Próximamente</p>
+                            <p className="card-value">✓ Activo</p>
+                            <p className="text-muted">Gestionar ediciones</p>
                         </div>
 
                         <div
@@ -47,8 +47,8 @@ const Dashboard: React.FC = () => {
                             onClick={() => navigate('/campaigns')}
                         >
                             <h3>✉️ Campañas</h3>
-                            <p className="card-value">-</p>
-                            <p className="text-muted">Próximamente</p>
+                            <p className="card-value">✓ Activo</p>
+                            <p className="text-muted">Gestionar envíos</p>
                         </div>
                     </div>
                 </div>
