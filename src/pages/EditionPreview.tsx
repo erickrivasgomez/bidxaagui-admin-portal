@@ -24,6 +24,8 @@ const EditionPreview: React.FC<EditionPreviewProps> = ({ isPublic = false }) => 
     const [totalPages, setTotalPages] = useState(0);
     const [isMobile, setIsMobile] = useState(false);
     const [isReady, setIsReady] = useState(false);
+    const [isFlippingBackward, setIsFlippingBackward] = useState(false);
+    const prevPageRef = useRef(0);
 
     // Handle close for public preview
     const handleClose = useCallback(() => {
@@ -113,7 +115,11 @@ const EditionPreview: React.FC<EditionPreviewProps> = ({ isPublic = false }) => 
     }, [isPublic, handleClose]);
 
     const onFlip = useCallback((e: any) => {
-        setCurrentPage(e.data);
+        const newPage = e.data;
+        const isGoingBackward = newPage < prevPageRef.current;
+        setIsFlippingBackward(isGoingBackward);
+        setCurrentPage(newPage);
+        prevPageRef.current = newPage;
     }, []);
 
     const handleDownload = () => {
@@ -123,21 +129,45 @@ const EditionPreview: React.FC<EditionPreviewProps> = ({ isPublic = false }) => 
     if (loading) return <div className="preview-loading">Cargando revista...</div>;
     if (error || !edition) return <div className="preview-error">{error}</div>;
 
-    // Calculate dimensions
+    // Calculate dimensions with better landscape support
     const containerH = window.innerHeight - (isPublic ? 0 : 80);
     const containerW = window.innerWidth - (isPublic ? 0 : 40);
-    let pageHeight = containerH * (isPublic ? 0.9 : 0.8);
-    let pageWidth = pageHeight * 0.7;
 
-    // Adjust if width is constraint
-    if (!isMobile) {
-        if ((pageWidth * 2) > containerW) {
-            pageWidth = (containerW / 2);
+    // Determine if we're in landscape mode (width > height)
+    const isLandscape = window.innerWidth > window.innerHeight;
+
+    let pageHeight, pageWidth;
+
+    if (isMobile) {
+        if (isLandscape) {
+            // Landscape mobile: height is the constraint
+            pageHeight = containerH * 0.85; // Usar 85% del alto disponible
+            pageWidth = pageHeight * 0.7; // Mantener ratio 7:10
+
+            // Si el ancho calculado es muy grande, ajustar por ancho
+            if (pageWidth > containerW * 0.45) {
+                pageWidth = containerW * 0.45;
+                pageHeight = pageWidth / 0.7;
+            }
+        } else {
+            // Portrait mobile: width is the constraint
+            pageWidth = containerW * 0.9;
             pageHeight = pageWidth / 0.7;
+
+            // Si la altura calculada es muy grande, ajustar por altura
+            if (pageHeight > containerH * 0.9) {
+                pageHeight = containerH * 0.9;
+                pageWidth = pageHeight * 0.7;
+            }
         }
     } else {
-        if (pageWidth > containerW) {
-            pageWidth = containerW * 0.9;
+        // Desktop: usar el algoritmo original
+        pageHeight = containerH * (isPublic ? 0.9 : 0.8);
+        pageWidth = pageHeight * 0.7;
+
+        // Adjust if width is constraint (dos páginas lado a lado)
+        if ((pageWidth * 2) > containerW) {
+            pageWidth = (containerW / 2);
             pageHeight = pageWidth / 0.7;
         }
     }
@@ -194,7 +224,7 @@ const EditionPreview: React.FC<EditionPreviewProps> = ({ isPublic = false }) => 
                         mobileScrollSupport={true}
                         onFlip={onFlip}
                         ref={bookRef}
-                        className="flipbook"
+                        className={`flipbook ${isMobile && isFlippingBackward ? 'flipping-backward-portrait' : ''}`}
                         style={{}}
                         startPage={0}
                         drawShadow={true}
