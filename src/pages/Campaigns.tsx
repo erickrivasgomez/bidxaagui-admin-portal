@@ -37,9 +37,10 @@ const Campaigns: React.FC = () => {
     const fetchSubscriberCount = async () => {
         try {
             const stats = await subscribersAPI.stats();
-            setRecipientCount(stats.data.total);
+            setRecipientCount(stats?.data?.total || 0);
         } catch (error) {
             console.error('Error fetching stats:', error);
+            setRecipientCount(0); // Safer fallback
         }
     };
 
