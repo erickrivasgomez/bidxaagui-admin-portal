@@ -25,7 +25,7 @@ const Campaigns: React.FC = () => {
         setIsLoading(true);
         try {
             const data = await campaignsAPI.getAll();
-            setCampaigns(data);
+            setCampaigns(data || []);
         } catch (error) {
             console.error('Error fetching campaigns:', error);
             // Don't alert on initial load error to avoid annoyance if purely auth related (handled by interceptor)
