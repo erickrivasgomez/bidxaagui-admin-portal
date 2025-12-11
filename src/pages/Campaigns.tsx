@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AdminHeader from '../components/AdminHeader';
-import { campaignsAPI, Campaign, subscribersAPI } from '../services/api';
+import { campaignsAPI, type Campaign, subscribersAPI } from '../services/api';
 import { NEWSLETTER_TEMPLATE } from '../templates/newsletter';
 import './Campaigns.css';
 

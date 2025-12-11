@@ -21,7 +21,6 @@ const EditionPreview: React.FC<EditionPreviewProps> = ({ isPublic = false }) => 
     // Flipbook State
     const bookRef = useRef<any>(null);
     const [currentPage, setCurrentPage] = useState(0);
-    const [totalPages, setTotalPages] = useState(0);
     const [isMobile, setIsMobile] = useState(false);
     const [isReady, setIsReady] = useState(false);
     const [isFlippingBackward, setIsFlippingBackward] = useState(false);
@@ -63,7 +62,6 @@ const EditionPreview: React.FC<EditionPreviewProps> = ({ isPublic = false }) => 
 
                 const pagesData = await editionsAPI.getPages(id);
                 setPages(pagesData);
-                setTotalPages(pagesData.length);
 
             } catch (err) {
                 console.error(err);
