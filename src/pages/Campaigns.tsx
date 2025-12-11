@@ -131,6 +131,23 @@ const Campaigns: React.FC = () => {
         }
     };
 
+    const handleSendTest = async (id: string) => {
+        const testEmails = ['antroponomadas.2025revd@gmail.com', 'rivaserick@outlook.com'];
+        const confirmMsg = `¿Enviar prueba a ${testEmails.join(', ')}?`;
+        
+        if (!window.confirm(confirmMsg)) return;
+
+        try {
+            const apiId = id || formData.id;
+            await campaignsAPI.sendTest(apiId, testEmails);
+            alert(`Prueba enviada correctamente a: ${testEmails.join(', ')}`);
+        } catch (error) {
+            console.error('Error sending test:', error);
+            const msg = error instanceof Error ? error.message : 'Error desconocido';
+            alert(`Error enviando la prueba: ${msg}`);
+        }
+    };
+
     return (
         <div className="admin-page">
             <AdminHeader title="Campañas de Email" />
@@ -185,7 +202,8 @@ const Campaigns: React.FC = () => {
                                                         {campaign.status === 'draft' && (
                                                             <>
                                                                 <button className="btn-icon" title="Editar" onClick={() => handleEdit(campaign)}>✏️</button>
-                                                                <button className="btn-icon" title="Enviar" onClick={() => handleSend(campaign.id)}>🚀</button>
+                                                                <button className="btn-icon" title="Enviar prueba" onClick={() => handleSendTest(campaign.id)}>✉️</button>
+                                                                <button className="btn-icon" title="Enviar a todos" onClick={() => handleSend(campaign.id)}>🚀</button>
                                                             </>
                                                         )}
                                                         <button className="btn-icon btn-delete" title="Eliminar" onClick={() => handleDelete(campaign.id)}>🗑️</button>

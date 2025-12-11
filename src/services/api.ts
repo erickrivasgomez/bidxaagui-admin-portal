@@ -264,6 +264,10 @@ export const campaignsAPI = {
     send: async (id: string) => {
         const response = await api.post<APIResponse>(`/api/admin/campaigns/${id}/send`);
         return response.data;
+    },
+    sendTest: async (id: string, emails: string[]) => {
+        const response = await api.post<APIResponse>(`/api/admin/campaigns/${id}/send-test`, { emails });
+        return response.data;
     }
 };
 
