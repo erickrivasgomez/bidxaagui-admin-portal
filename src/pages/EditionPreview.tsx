@@ -23,6 +23,7 @@ const EditionPreview: React.FC<EditionPreviewProps> = ({ isPublic = false }) => 
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [isMobile, setIsMobile] = useState(false);
+    const [isReady, setIsReady] = useState(false);
 
     // Handle close for public preview
     const handleClose = useCallback(() => {
@@ -81,6 +82,19 @@ const EditionPreview: React.FC<EditionPreviewProps> = ({ isPublic = false }) => 
         return () => window.removeEventListener('resize', handleResize);
     }, [id]);
 
+    // Wait for DOM to be ready before rendering flipbook
+    useEffect(() => {
+        if (!loading && pages.length > 0) {
+            // Delay to ensure iframe/container dimensions are stable
+            const timer = setTimeout(() => {
+                setIsReady(true);
+            }, 500);
+            return () => clearTimeout(timer);
+        } else {
+            setIsReady(false);
+        }
+    }, [loading, pages.length]);
+
     // Keyboard Navigation
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -137,7 +151,7 @@ const EditionPreview: React.FC<EditionPreviewProps> = ({ isPublic = false }) => 
         pageHeight = Math.max(pageHeight, 400);
     }
 
-    if (!hasValidDimensions) {
+    if (!hasValidDimensions || !isReady) {
         return <div className="preview-loading">Inicializando lector...</div>;
     }
 
