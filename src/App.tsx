@@ -23,6 +23,12 @@ function App() {
           <Route path="/auth/verify" element={<VerifyMagicLink />} />
         </Route>
 
+        {/* Public Preview Route - DEBE estar ANTES del catch-all */}
+        <Route
+          path="/public/editions/:id/preview"
+          element={<EditionPreview isPublic={true} />}
+        />
+
         {/* Protected Routes */}
         <Route
           path="/dashboard"
@@ -48,15 +54,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-        {/* Public Preview Route */}
-        <Route
-          path="/public/editions/:id/preview"
-          element={<EditionPreview isPublic={true} />}
-        />
-        <Route
-          path="/public/editions/:id/preview"
-          element={<EditionPreview isPublic={true} />}
-        />
         {/* Protected Preview Route */}
         <Route
           path="/editions/:id/preview"
@@ -75,7 +72,7 @@ function App() {
           }
         />
 
-        {/* Default/Catch-all Redirect */}
+        {/* Default/Catch-all Redirect - DEBE estar AL FINAL */}
         <Route
           path="*"
           element={
