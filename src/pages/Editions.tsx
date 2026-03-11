@@ -22,6 +22,9 @@ const Editions: React.FC = () => {
     const [isLightboxOpen, setIsLightboxOpen] = useState(false);
     const [lightboxIndex, setLightboxIndex] = useState(0);
     const [viewingEditionTitle, setViewingEditionTitle] = useState('');
+    const [lastProcessedEditionId, setLastProcessedEditionId] = useState<string | null>(null);
+    const [finishedProcessing, setFinishedProcessing] = useState(false);
+    const [processedBlobs, setProcessedBlobs] = useState<Array<{ blob: Blob; width: number; height: number }>>([]);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -101,10 +104,10 @@ const Editions: React.FC = () => {
             const zip = new JSZip();
             const contents = await zip.loadAsync(file);
 
-            // Filter images and sort by name
+            // Filter images and sort by NATURAL numeric order (1, 2, 10 instead of 1, 10, 2)
             const imageFiles = Object.keys(contents.files)
                 .filter(filename => !contents.files[filename].dir && filename.match(/\.(png|jpg|jpeg)$/i))
-                .sort(); // Alphabetic sort: 01.png, 02.png...
+                .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
 
             if (imageFiles.length === 0) {
                 throw new Error('El ZIP no contiene imágenes válidas (.png, .jpg)');
@@ -112,26 +115,10 @@ const Editions: React.FC = () => {
 
             setStatusMessage(`Procesando ${imageFiles.length} imágenes dobles...`);
 
-            // Initialize PDF - Using first image to set base dimensions
-            const firstImgFile = await contents.files[imageFiles[0]].async('blob');
-            const firstImgBitmap = await createImageBitmap(firstImgFile);
-            const { jsPDF } = await import('jspdf');
-
-            // Si la primera es spread, el PDF base será la mitad de ancho
-            const baseW = firstImgBitmap.width > (firstImgBitmap.height * 1.2)
-                ? Math.floor(firstImgBitmap.width / 2)
-                : firstImgBitmap.width;
-            const baseH = firstImgBitmap.height;
-
-            const pdf = new jsPDF({
-                orientation: baseW > baseH ? 'l' : 'p',
-                unit: 'px',
-                format: [baseW, baseH]
-            });
-
             let globalPageCount = 1;
             const totalSteps = imageFiles.length * 2;
             let currentStep = 0;
+            const blobsCollector: Array<{ blob: Blob; width: number; height: number }> = [];
 
             for (let i = 0; i < imageFiles.length; i++) {
                 const filename = imageFiles[i];
@@ -151,16 +138,12 @@ const Editions: React.FC = () => {
                     ctx.clearRect(0, 0, w, height);
                     ctx.drawImage(imgBitmap, x, 0, w, height, 0, 0, w, height);
 
-                    // Add to PDF
-                    if (pageNum > 1) {
-                        pdf.addPage([w, height], w > height ? 'l' : 'p');
-                    }
-                    const imgData = canvas.toDataURL('image/jpeg', 0.9);
-                    pdf.addImage(imgData, 'JPEG', 0, 0, w, height);
-
                     return new Promise<void>((resolve, reject) => {
                         canvas.toBlob(async (blob) => {
                             if (!blob) return reject('Error creating blob');
+
+                            // Store the optimized webp blob for the PDF step later
+                            blobsCollector.push({ blob, width: w, height: height });
 
                             const fd = new FormData();
                             fd.append('file', blob, `page_${pageNum}.webp`);
@@ -189,28 +172,66 @@ const Editions: React.FC = () => {
                 }
 
                 currentStep += 2;
-                setProgress(Math.min(90, Math.round((currentStep / totalSteps) * 100)));
+                setProgress(Math.min(100, Math.round((currentStep / totalSteps) * 100)));
             }
 
-            // 3. Finalize and Upload PDF
-            setStatusMessage('Generando y subiendo PDF consolidado...');
+            setProcessedBlobs(blobsCollector);
+            setLastProcessedEditionId(editionId);
+            setFinishedProcessing(true);
+            setStatusMessage('Paso 1: ¡Páginas subidas con éxito! Ahora puedes generar el PDF.');
+            fetchEditions();
+
+        } catch (err: any) {
+            console.error('Error processing:', err);
+            setStatusMessage('Error Subida: ' + (err.message || 'Error desconocido'));
+            setIsProcessing(false);
+        }
+    };
+
+    const generateAndUploadPDF = async (editionId: string, blobs: Array<{ blob: Blob; width: number; height: number }>, editionTitle: string) => {
+        setIsProcessing(true);
+        setStatusMessage('Generando PDF desde imágenes optimizadas...');
+        setProgress(0);
+
+        try {
+            const { jsPDF } = await import('jspdf');
+
+            if (blobs.length === 0) throw new Error('No hay imágenes procesadas.');
+
+            const first = blobs[0];
+            const pdf = new jsPDF({
+                orientation: first.width > first.height ? 'l' : 'p',
+                unit: 'px',
+                format: [first.width, first.height]
+            });
+
+            for (let i = 0; i < blobs.length; i++) {
+                const item = blobs[i];
+                if (i > 0) {
+                    pdf.addPage([item.width, item.height], item.width > item.height ? 'l' : 'p');
+                }
+
+                const reader = new FileReader();
+                const dataUrl = await new Promise<string>((resolve) => {
+                    reader.onloadend = () => resolve(reader.result as string);
+                    reader.readAsDataURL(item.blob);
+                });
+
+                pdf.addImage(dataUrl, 'JPEG', 0, 0, item.width, item.height);
+                setProgress(Math.round(((i + 1) / blobs.length) * 100));
+            }
+
+            setStatusMessage('Enviando PDF a GitHub (esto puede tardar unos segundos)...');
             const pdfBlob = pdf.output('blob');
-            const pdfFileName = `Antroponomadas - ${title}.pdf`.replace(/\s+/g, ' ');
+            const pdfFileName = `Antroponomadas - ${editionTitle}.pdf`.replace(/\s+/g, ' ');
 
             const pdfFormData = new FormData();
             pdfFormData.append('file', pdfBlob, pdfFileName);
 
-            // Llamada al nuevo endpoint del worker (lo crearemos a continuación)
-            try {
-                await editionsAPI.uploadPDF(editionId, pdfFormData);
-            } catch (e) {
-                console.warn('Error subiendo PDF (posiblemente endpoint no creado aún):', e);
-            }
+            await editionsAPI.uploadPDF(editionId, pdfFormData);
 
-            setProgress(100);
-            setStatusMessage('¡Completado!');
+            setStatusMessage('¡Todo listo! PDF pusheado a GitHub.');
 
-            // Cleanup
             setTimeout(() => {
                 setIsModalOpen(false);
                 setIsProcessing(false);
@@ -219,9 +240,38 @@ const Editions: React.FC = () => {
             }, 1000);
 
         } catch (err: any) {
-            console.error('Error processing:', err);
-            setStatusMessage('Error: ' + (err.message || 'Error desconocido'));
-            // Don't close modal so user sees error
+            console.error('Error Generating PDF:', err);
+            setStatusMessage('Error PDF: ' + (err.message || 'Error desconocido'));
+            setIsProcessing(false);
+        }
+    };
+
+    const handleManualPDF = async (edition: Edition) => {
+        try {
+            setIsProcessing(true);
+            setStatusMessage('Descargando páginas actuales para generar PDF...');
+            const pagesData = await editionsAPI.getPages(edition.id);
+
+            if (!pagesData || pagesData.length === 0) {
+                alert('No se puede generar PDF sin páginas.');
+                setIsProcessing(false);
+                return;
+            }
+
+            const blobs: Array<{ blob: Blob; width: number; height: number }> = [];
+            const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8787';
+
+            for (const page of pagesData) {
+                const res = await fetch(`${API_BASE}/api/images/${page.imagen_url}`);
+                const blob = await res.blob();
+                const img = await createImageBitmap(blob);
+                blobs.push({ blob, width: img.width, height: img.height });
+            }
+
+            await generateAndUploadPDF(edition.id, blobs, edition.titulo);
+        } catch (e) {
+            console.error(e);
+            alert('Error al procesar PDF manual');
             setIsProcessing(false);
         }
     };
@@ -233,6 +283,9 @@ const Editions: React.FC = () => {
         setFile(null);
         setProgress(0);
         setStatusMessage('');
+        setFinishedProcessing(false);
+        setProcessedBlobs([]);
+        setLastProcessedEditionId(null);
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
@@ -325,6 +378,15 @@ const Editions: React.FC = () => {
                                                 </button>
                                                 <button onClick={() => handleDelete(edition.id)} className="btn-delete" title="Eliminar">
                                                     🗑️
+                                                </button>
+                                                <button
+                                                    onClick={() => handleManualPDF(edition)}
+                                                    className="btn-action"
+                                                    title="Regenerar PDF en GitHub"
+                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', marginLeft: '5px' }}
+                                                    disabled={isProcessing}
+                                                >
+                                                    📄
                                                 </button>
                                             </td>
                                         </tr>
@@ -488,11 +550,23 @@ const Editions: React.FC = () => {
                                     Cancelar
                                 </button>
                                 <button
+                                    onClick={() => lastProcessedEditionId && generateAndUploadPDF(lastProcessedEditionId, processedBlobs, title)}
+                                    className="btn-confirm"
+                                    style={{
+                                        backgroundColor: 'var(--bg-olive)',
+                                        display: finishedProcessing ? 'block' : 'none'
+                                    }}
+                                    disabled={isProcessing}
+                                >
+                                    {isProcessing ? 'Generando PDF...' : 'PASO 2: Generar PDF en GitHub'}
+                                </button>
+                                <button
                                     onClick={processAndUpload}
                                     className="btn-confirm"
-                                    disabled={isProcessing || !file || !title}
+                                    disabled={isProcessing || !file || !title || finishedProcessing}
+                                    style={{ display: finishedProcessing ? 'none' : 'block' }}
                                 >
-                                    {isProcessing ? 'Procesando...' : 'Crear Edición'}
+                                    {isProcessing ? 'Procesando...' : 'PASO 1: Subir Edición'}
                                 </button>
                             </div>
                         </div>
