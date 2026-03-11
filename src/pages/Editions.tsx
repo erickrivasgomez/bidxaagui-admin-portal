@@ -215,14 +215,17 @@ const Editions: React.FC = () => {
                     pdf.addPage([item.width, item.height], item.width > item.height ? 'l' : 'p');
                 }
 
-                const reader = new FileReader();
-                const dataUrl = await new Promise<string>((resolve) => {
-                    reader.onloadend = () => resolve(reader.result as string);
-                    reader.readAsDataURL(item.blob);
-                });
+                // PERFORMANCE: Use arrayBuffer instead of base64 to avoid string overhead
+                const buffer = await item.blob.arrayBuffer();
+                const uint8 = new Uint8Array(buffer);
 
-                pdf.addImage(dataUrl, 'JPEG', 0, 0, item.width, item.height);
+                // Add image with compression 'FAST'
+                pdf.addImage(uint8, 'WEBP', 0, 0, item.width, item.height, undefined, 'FAST');
+
                 setProgress(Math.round(((i + 1) / blobs.length) * 100));
+
+                // CRITICAL: Yield to main thread to prevent freezing
+                if (i % 2 === 0) await new Promise(r => setTimeout(r, 10));
             }
 
             setStatusMessage('Enviando PDF a GitHub (esto puede tardar unos segundos)...');
@@ -263,7 +266,10 @@ const Editions: React.FC = () => {
             }
 
             const blobs: Array<{ blob: Blob; width: number; height: number }> = [];
-            const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8787';
+            const API_BASE = import.meta.env.VITE_API_URL ||
+                (window.location.hostname.includes('bidxaagui.com') || window.location.hostname.includes('pages.dev')
+                    ? 'https://api.bidxaagui.com'
+                    : 'http://localhost:8787');
 
             for (const page of pagesData) {
                 const imageUrl = page.imagen_url.startsWith('http')
