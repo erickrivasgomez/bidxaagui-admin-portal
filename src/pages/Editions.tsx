@@ -125,6 +125,8 @@ const Editions: React.FC = () => {
                 const fileData = await contents.files[filename].async('blob');
 
                 const imgBitmap = await createImageBitmap(fileData);
+
+                // PERFORMANCE FIX: Use a persistent canvas for the whole loop
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 if (!ctx) throw new Error('No se pudo crear contexto de canvas');
@@ -142,11 +144,12 @@ const Editions: React.FC = () => {
                         canvas.toBlob(async (blob) => {
                             if (!blob) return reject('Error creating blob');
 
-                            // Store the optimized webp blob for the PDF step later
+                            // Store for PDF generation later
                             blobsCollector.push({ blob, width: w, height: height });
 
+                            const paddedPageNum = pageNum.toString().padStart(3, '0');
                             const fd = new FormData();
-                            fd.append('file', blob, `page_${pageNum}.webp`);
+                            fd.append('file', blob, `page_${paddedPageNum}.webp`);
                             fd.append('pageNumber', pageNum.toString());
                             fd.append('isCover', isCover ? 'true' : 'false');
 
@@ -171,6 +174,7 @@ const Editions: React.FC = () => {
                     await processCrop(0, width, globalPageCount++, i === 0);
                 }
 
+                imgBitmap.close(); // PERFORMANCE FIX: Explicit memory release
                 currentStep += 2;
                 setProgress(Math.min(100, Math.round((currentStep / totalSteps) * 100)));
             }
@@ -262,10 +266,15 @@ const Editions: React.FC = () => {
             const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8787';
 
             for (const page of pagesData) {
-                const res = await fetch(`${API_BASE}/api/images/${page.imagen_url}`);
+                const imageUrl = page.imagen_url.startsWith('http')
+                    ? page.imagen_url
+                    : `${API_BASE}/api/images/${page.imagen_url}`;
+
+                const res = await fetch(imageUrl);
                 const blob = await res.blob();
                 const img = await createImageBitmap(blob);
                 blobs.push({ blob, width: img.width, height: img.height });
+                img.close();
             }
 
             await generateAndUploadPDF(edition.id, blobs, edition.titulo);
@@ -320,7 +329,8 @@ const Editions: React.FC = () => {
                                     <th>Portada</th>
                                     <th>Título</th>
                                     <th>Fecha</th>
-                                    <th>Publicada</th>
+                                    <th>Descarga PDF</th>
+                                    <th>Estatus</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
@@ -363,9 +373,37 @@ const Editions: React.FC = () => {
                                             </td>
                                             <td>{new Date(edition.fecha || '').toLocaleDateString()}</td>
                                             <td>
-                                                <span className={`status-badge ${edition.publicada ? 'published' : 'draft'}`}>
-                                                    {edition.publicada ? 'Publicada' : 'Borrador'}
-                                                </span>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    {edition.pdf_url ? (
+                                                        <a
+                                                            href={edition.pdf_url.startsWith('http') ? edition.pdf_url : `https://erickrivasgomez.github.io/bidxaagui-portfolio/landing-page/assets/documents/${edition.pdf_url.split('/').pop()}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            style={{ color: 'var(--accent-rust)', fontSize: '0.9rem', fontWeight: 600 }}
+                                                        >
+                                                            Ver PDF
+                                                        </a>
+                                                    ) : (
+                                                        <span style={{ color: '#888', fontSize: '0.85rem' }}>Default</span>
+                                                    )}
+                                                    <button
+                                                        onClick={() => handleManualPDF(edition)}
+                                                        className="btn-mini"
+                                                        title="Generar/Actualizar PDF"
+                                                        style={{
+                                                            padding: '2px 8px',
+                                                            fontSize: '0.75rem',
+                                                            background: 'var(--bg-olive)',
+                                                            color: 'white',
+                                                            border: 'none',
+                                                            borderRadius: '4px',
+                                                            cursor: 'pointer'
+                                                        }}
+                                                        disabled={isProcessing}
+                                                    >
+                                                        {isProcessing ? '...' : 'Generar'}
+                                                    </button>
+                                                </div>
                                             </td>
                                             <td>
                                                 <button
