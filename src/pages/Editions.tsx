@@ -214,23 +214,34 @@ const Editions: React.FC = () => {
                 const item = blobs[i];
                 setStatusMessage(`Comprimiendo página ${i + 1} de ${blobs.length}...`);
 
-                if (i > 0) {
-                    pdf.addPage([item.width, item.height], item.width > item.height ? 'l' : 'p');
+                // Convert WebP/Binary to compressed JPEG with resizing
+                const img = await createImageBitmap(item.blob);
+
+                // Target: Max height 1080px (standard HD) to keep file < 25MB
+                const maxH = 1080;
+                const scale = item.height > maxH ? maxH / item.height : 1;
+                const targetW = Math.round(item.width * scale);
+                const targetH = Math.round(item.height * scale);
+
+                if (i === 0) {
+                    // Initialize PDF with the FIRST page scaled dimensions
+                    pdf.deletePage(1); // Remove default page
+                    pdf.addPage([targetW, targetH], targetW > targetH ? 'l' : 'p');
+                } else {
+                    pdf.addPage([targetW, targetH], targetW > targetH ? 'l' : 'p');
                 }
 
-                // Convert WebP/Binary to compressed JPEG in the browser
-                const img = await createImageBitmap(item.blob);
                 const canvas = document.createElement('canvas');
-                canvas.width = item.width;
-                canvas.height = item.height;
+                canvas.width = targetW;
+                canvas.height = targetH;
                 const ctx = canvas.getContext('2d');
                 if (ctx) {
-                    ctx.drawImage(img, 0, 0);
-                    // Quality 0.6 is a good balance to stay under the 100MB Cloudflare limit
-                    const compressedData = canvas.toDataURL('image/jpeg', 0.6);
-                    pdf.addImage(compressedData, 'JPEG', 0, 0, item.width, item.height, undefined, 'FAST');
+                    ctx.drawImage(img, 0, 0, targetW, targetH);
+                    // Quality 0.5 + Resize is key to beat the 25MiB limit
+                    const compressedData = canvas.toDataURL('image/jpeg', 0.5);
+                    pdf.addImage(compressedData, 'JPEG', 0, 0, targetW, targetH, undefined, 'FAST');
                 }
-                img.close(); // Immediate memory release
+                img.close();
 
                 setProgress(Math.round(((i + 1) / blobs.length) * 100));
 
