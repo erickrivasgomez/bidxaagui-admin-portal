@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import JSZip from 'jszip';
+import { jsPDF } from 'jspdf';
 import AdminHeader from '../components/AdminHeader';
 import { editionsAPI, type Edition } from '../services/api';
 import './Editions.css';
@@ -195,13 +196,10 @@ const Editions: React.FC = () => {
 
     const generateAndUploadPDF = async (editionId: string, blobs: Array<{ blob: Blob; width: number; height: number }>, editionTitle: string) => {
         setIsProcessing(true);
-        setStatusMessage('Iniciando jsPDF...');
+        setStatusMessage('Preparando pdf...');
         setProgress(0);
 
         try {
-            console.log('Importing jsPDF...');
-            const { jsPDF } = await import('jspdf');
-
             if (blobs.length === 0) throw new Error('No hay imágenes procesadas.');
 
             setStatusMessage('Configurando documento PDF...');
@@ -223,7 +221,7 @@ const Editions: React.FC = () => {
                 const buffer = await item.blob.arrayBuffer();
                 const uint8 = new Uint8Array(buffer);
 
-                // Use 'JPEG' encoding for binary data passthrough in jsPDF for maximum compatibility
+                // Adding with JPEG encoding for binary stability
                 pdf.addImage(uint8, 'JPEG', 0, 0, item.width, item.height, undefined, 'FAST');
 
                 setProgress(Math.round(((i + 1) / blobs.length) * 100));
@@ -231,7 +229,7 @@ const Editions: React.FC = () => {
                 if (i % 2 === 0) await new Promise(r => setTimeout(r, 10));
             }
 
-            setStatusMessage('Firmando y enviando PDF a GitHub...');
+            setStatusMessage('Enviando PDF a GitHub...');
             const pdfBlob = pdf.output('blob');
             const pdfFileName = `Antroponomadas - ${editionTitle}.pdf`.replace(/\s+/g, ' ');
 
