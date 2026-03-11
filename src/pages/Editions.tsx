@@ -212,17 +212,25 @@ const Editions: React.FC = () => {
 
             for (let i = 0; i < blobs.length; i++) {
                 const item = blobs[i];
-                setStatusMessage(`Procesando página ${i + 1} de ${blobs.length}...`);
+                setStatusMessage(`Comprimiendo página ${i + 1} de ${blobs.length}...`);
 
                 if (i > 0) {
                     pdf.addPage([item.width, item.height], item.width > item.height ? 'l' : 'p');
                 }
 
-                const buffer = await item.blob.arrayBuffer();
-                const uint8 = new Uint8Array(buffer);
-
-                // Adding with JPEG encoding for binary stability
-                pdf.addImage(uint8, 'JPEG', 0, 0, item.width, item.height, undefined, 'FAST');
+                // Convert WebP/Binary to compressed JPEG in the browser
+                const img = await createImageBitmap(item.blob);
+                const canvas = document.createElement('canvas');
+                canvas.width = item.width;
+                canvas.height = item.height;
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                    ctx.drawImage(img, 0, 0);
+                    // Quality 0.6 is a good balance to stay under the 100MB Cloudflare limit
+                    const compressedData = canvas.toDataURL('image/jpeg', 0.6);
+                    pdf.addImage(compressedData, 'JPEG', 0, 0, item.width, item.height, undefined, 'FAST');
+                }
+                img.close(); // Immediate memory release
 
                 setProgress(Math.round(((i + 1) / blobs.length) * 100));
 
