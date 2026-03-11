@@ -25,6 +25,7 @@ const Editions: React.FC = () => {
     const [lastProcessedEditionId, setLastProcessedEditionId] = useState<string | null>(null);
     const [finishedProcessing, setFinishedProcessing] = useState(false);
     const [processedBlobs, setProcessedBlobs] = useState<Array<{ blob: Blob; width: number; height: number }>>([]);
+    const [generatingPdfId, setGeneratingPdfId] = useState<string | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -194,14 +195,16 @@ const Editions: React.FC = () => {
 
     const generateAndUploadPDF = async (editionId: string, blobs: Array<{ blob: Blob; width: number; height: number }>, editionTitle: string) => {
         setIsProcessing(true);
-        setStatusMessage('Generando PDF desde imágenes optimizadas...');
+        setStatusMessage('Iniciando jsPDF...');
         setProgress(0);
 
         try {
+            console.log('Importing jsPDF...');
             const { jsPDF } = await import('jspdf');
 
             if (blobs.length === 0) throw new Error('No hay imágenes procesadas.');
 
+            setStatusMessage('Configurando documento PDF...');
             const first = blobs[0];
             const pdf = new jsPDF({
                 orientation: first.width > first.height ? 'l' : 'p',
@@ -211,24 +214,24 @@ const Editions: React.FC = () => {
 
             for (let i = 0; i < blobs.length; i++) {
                 const item = blobs[i];
+                setStatusMessage(`Procesando página ${i + 1} de ${blobs.length}...`);
+
                 if (i > 0) {
                     pdf.addPage([item.width, item.height], item.width > item.height ? 'l' : 'p');
                 }
 
-                // PERFORMANCE: Use arrayBuffer instead of base64 to avoid string overhead
                 const buffer = await item.blob.arrayBuffer();
                 const uint8 = new Uint8Array(buffer);
 
-                // Add image with compression 'FAST'
-                pdf.addImage(uint8, 'WEBP', 0, 0, item.width, item.height, undefined, 'FAST');
+                // Use 'JPEG' encoding for binary data passthrough in jsPDF for maximum compatibility
+                pdf.addImage(uint8, 'JPEG', 0, 0, item.width, item.height, undefined, 'FAST');
 
                 setProgress(Math.round(((i + 1) / blobs.length) * 100));
 
-                // CRITICAL: Yield to main thread to prevent freezing
                 if (i % 2 === 0) await new Promise(r => setTimeout(r, 10));
             }
 
-            setStatusMessage('Enviando PDF a GitHub (esto puede tardar unos segundos)...');
+            setStatusMessage('Firmando y enviando PDF a GitHub...');
             const pdfBlob = pdf.output('blob');
             const pdfFileName = `Antroponomadas - ${editionTitle}.pdf`.replace(/\s+/g, ' ');
 
@@ -242,6 +245,7 @@ const Editions: React.FC = () => {
             setTimeout(() => {
                 setIsModalOpen(false);
                 setIsProcessing(false);
+                setGeneratingPdfId(null);
                 resetForm();
                 fetchEditions();
             }, 1000);
@@ -250,11 +254,13 @@ const Editions: React.FC = () => {
             console.error('Error Generating PDF:', err);
             setStatusMessage('Error PDF: ' + (err.message || 'Error desconocido'));
             setIsProcessing(false);
+            setGeneratingPdfId(null);
         }
     };
 
     const handleManualPDF = async (edition: Edition) => {
         try {
+            setGeneratingPdfId(edition.id);
             setIsProcessing(true);
             setStatusMessage('Descargando páginas actuales para generar PDF...');
             const pagesData = await editionsAPI.getPages(edition.id);
@@ -403,11 +409,12 @@ const Editions: React.FC = () => {
                                                             color: 'white',
                                                             border: 'none',
                                                             borderRadius: '4px',
-                                                            cursor: 'pointer'
+                                                            cursor: 'pointer',
+                                                            opacity: (isProcessing && generatingPdfId !== edition.id) ? 0.5 : 1
                                                         }}
                                                         disabled={isProcessing}
                                                     >
-                                                        {isProcessing ? '...' : 'Generar'}
+                                                        {(isProcessing && generatingPdfId === edition.id) ? '...' : 'Generar'}
                                                     </button>
                                                 </div>
                                             </td>
