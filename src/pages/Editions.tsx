@@ -112,32 +112,51 @@ const Editions: React.FC = () => {
 
             setStatusMessage(`Procesando ${imageFiles.length} imágenes dobles...`);
 
+            // Initialize PDF - Using first image to set base dimensions
+            const firstImgFile = await contents.files[imageFiles[0]].async('blob');
+            const firstImgBitmap = await createImageBitmap(firstImgFile);
+            const { jsPDF } = await import('jspdf');
+
+            // Si la primera es spread, el PDF base será la mitad de ancho
+            const baseW = firstImgBitmap.width > (firstImgBitmap.height * 1.2)
+                ? Math.floor(firstImgBitmap.width / 2)
+                : firstImgBitmap.width;
+            const baseH = firstImgBitmap.height;
+
+            const pdf = new jsPDF({
+                orientation: baseW > baseH ? 'l' : 'p',
+                unit: 'px',
+                format: [baseW, baseH]
+            });
+
             let globalPageCount = 1;
-            const totalSteps = imageFiles.length * 2; // Rough estimate for progress steps
+            const totalSteps = imageFiles.length * 2;
             let currentStep = 0;
 
             for (let i = 0; i < imageFiles.length; i++) {
                 const filename = imageFiles[i];
                 const fileData = await contents.files[filename].async('blob');
 
-                // Create Image Bitmap/Element
                 const imgBitmap = await createImageBitmap(fileData);
-
-                // Canvas setup
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 if (!ctx) throw new Error('No se pudo crear contexto de canvas');
 
-                // Smart Processing: Check if Spread (Double) or Single Page
                 const width = imgBitmap.width;
                 const height = imgBitmap.height;
 
-                // Helper to crop and upload
                 const processCrop = async (x: number, w: number, pageNum: number, isCover: boolean) => {
                     canvas.width = w;
                     canvas.height = height;
                     ctx.clearRect(0, 0, w, height);
                     ctx.drawImage(imgBitmap, x, 0, w, height, 0, 0, w, height);
+
+                    // Add to PDF
+                    if (pageNum > 1) {
+                        pdf.addPage([w, height], w > height ? 'l' : 'p');
+                    }
+                    const imgData = canvas.toDataURL('image/jpeg', 0.9);
+                    pdf.addImage(imgData, 'JPEG', 0, 0, w, height);
 
                     return new Promise<void>((resolve, reject) => {
                         canvas.toBlob(async (blob) => {
@@ -158,29 +177,34 @@ const Editions: React.FC = () => {
                     });
                 };
 
-                // Detect Spread vs Single
-                // If width is significantly larger than height (e.g. > 1.2 ratio), assume spread.
                 const isSpread = width > (height * 1.2);
-
                 if (isSpread) {
-                    // It's a double page spread -> Split logic
                     const halfWidth = Math.floor(width / 2);
-
-                    // Left Image
-                    // If Cover (i===0), only Left is used (User Rule).
                     await processCrop(0, halfWidth, globalPageCount++, i === 0);
-
                     if (i > 0) {
-                        // Right Image (Page N+1) - Only if not cover
                         await processCrop(halfWidth, width - halfWidth, globalPageCount++, false);
                     }
                 } else {
-                    // Single Page -> Upload Full Image
                     await processCrop(0, width, globalPageCount++, i === 0);
                 }
 
-                currentStep += 2; // roughly
-                setProgress(Math.min(95, Math.round((currentStep / totalSteps) * 100)));
+                currentStep += 2;
+                setProgress(Math.min(90, Math.round((currentStep / totalSteps) * 100)));
+            }
+
+            // 3. Finalize and Upload PDF
+            setStatusMessage('Generando y subiendo PDF consolidado...');
+            const pdfBlob = pdf.output('blob');
+            const pdfFileName = `Antroponomadas - ${title}.pdf`.replace(/\s+/g, ' ');
+
+            const pdfFormData = new FormData();
+            pdfFormData.append('file', pdfBlob, pdfFileName);
+
+            // Llamada al nuevo endpoint del worker (lo crearemos a continuación)
+            try {
+                await editionsAPI.uploadPDF(editionId, pdfFormData);
+            } catch (e) {
+                console.warn('Error subiendo PDF (posiblemente endpoint no creado aún):', e);
             }
 
             setProgress(100);
