@@ -217,15 +217,14 @@ const Editions: React.FC = () => {
                 // Convert WebP/Binary to compressed JPEG with resizing
                 const img = await createImageBitmap(item.blob);
 
-                // Target: Max height 1080px (standard HD) to keep file < 25MB
-                const maxH = 1080;
+                // Target: Max height 1600px (higher resolution) to avoid pixelation
+                const maxH = 1600;
                 const scale = item.height > maxH ? maxH / item.height : 1;
                 const targetW = Math.round(item.width * scale);
                 const targetH = Math.round(item.height * scale);
 
                 if (i === 0) {
-                    // Initialize PDF with the FIRST page scaled dimensions
-                    pdf.deletePage(1); // Remove default page
+                    pdf.deletePage(1);
                     pdf.addPage([targetW, targetH], targetW > targetH ? 'l' : 'p');
                 } else {
                     pdf.addPage([targetW, targetH], targetW > targetH ? 'l' : 'p');
@@ -237,8 +236,8 @@ const Editions: React.FC = () => {
                 const ctx = canvas.getContext('2d');
                 if (ctx) {
                     ctx.drawImage(img, 0, 0, targetW, targetH);
-                    // Quality 0.5 + Resize is key to beat the 25MiB limit
-                    const compressedData = canvas.toDataURL('image/jpeg', 0.5);
+                    // Quality 0.75 is a better balance
+                    const compressedData = canvas.toDataURL('image/jpeg', 0.75);
                     pdf.addImage(compressedData, 'JPEG', 0, 0, targetW, targetH, undefined, 'FAST');
                 }
                 img.close();
@@ -250,7 +249,7 @@ const Editions: React.FC = () => {
 
             setStatusMessage('Enviando PDF a GitHub...');
             const pdfBlob = pdf.output('blob');
-            const pdfFileName = `Antroponomadas - ${editionTitle}.pdf`.replace(/\s+/g, ' ');
+            const pdfFileName = `Antroponómadas - ${editionTitle}.pdf`.replace(/\s+/g, ' ');
 
             const pdfFormData = new FormData();
             pdfFormData.append('file', pdfBlob, pdfFileName);
@@ -405,7 +404,7 @@ const Editions: React.FC = () => {
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                     {edition.pdf_url ? (
                                                         <a
-                                                            href={edition.pdf_url.startsWith('http') ? edition.pdf_url : `https://erickrivasgomez.github.io/bidxaagui-portfolio/landing-page/assets/documents/${edition.pdf_url.split('/').pop()}`}
+                                                            href={edition.pdf_url.startsWith('http') ? edition.pdf_url : `https://bidxaagui.com/assets/documents/${edition.pdf_url.split('/').pop()}`}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             style={{ color: 'var(--accent-rust)', fontSize: '0.9rem', fontWeight: 600 }}
