@@ -137,17 +137,22 @@ const Editions: React.FC = () => {
                 const height = imgBitmap.height;
 
                 const processCrop = async (x: number, w: number, pageNum: number, isCover: boolean) => {
-                    canvas.width = w;
-                    canvas.height = height;
-                    ctx.clearRect(0, 0, w, height);
-                    ctx.drawImage(imgBitmap, x, 0, w, height, 0, 0, w, height);
+                    const maxH_p = 1800;
+                    const scale = height > maxH_p ? maxH_p / height : 1;
+                    const targetW = Math.round(w * scale);
+                    const targetH = Math.round(height * scale);
+
+                    canvas.width = targetW;
+                    canvas.height = targetH;
+                    ctx.clearRect(0, 0, targetW, targetH);
+                    ctx.drawImage(imgBitmap, x, 0, w, height, 0, 0, targetW, targetH);
 
                     return new Promise<void>((resolve, reject) => {
                         canvas.toBlob(async (blob) => {
                             if (!blob) return reject('Error creating blob');
 
                             // Store for PDF generation later
-                            blobsCollector.push({ blob, width: w, height: height });
+                            blobsCollector.push({ blob, width: targetW, height: targetH });
 
                             const paddedPageNum = pageNum.toString().padStart(3, '0');
                             const fd = new FormData();
@@ -161,7 +166,7 @@ const Editions: React.FC = () => {
                             } catch (e) {
                                 reject(e);
                             }
-                        }, 'image/webp', 0.85);
+                        }, 'image/webp', 0.7);
                     });
                 };
 
@@ -217,8 +222,8 @@ const Editions: React.FC = () => {
                 // Convert WebP/Binary to compressed JPEG with resizing
                 const img = await createImageBitmap(item.blob);
 
-                // Target: Max height 1600px (higher resolution) to avoid pixelation
-                const maxH = 1600;
+                // Target: Max height 1800px (higher resolution) to avoid pixelation
+                const maxH = 1800;
                 const scale = item.height > maxH ? maxH / item.height : 1;
                 const targetW = Math.round(item.width * scale);
                 const targetH = Math.round(item.height * scale);
@@ -236,8 +241,8 @@ const Editions: React.FC = () => {
                 const ctx = canvas.getContext('2d');
                 if (ctx) {
                     ctx.drawImage(img, 0, 0, targetW, targetH);
-                    // Quality 0.75 is a better balance
-                    const compressedData = canvas.toDataURL('image/jpeg', 0.75);
+                    // Quality 0.7 is a better balance for high volumes
+                    const compressedData = canvas.toDataURL('image/jpeg', 0.7);
                     pdf.addImage(compressedData, 'JPEG', 0, 0, targetW, targetH, undefined, 'FAST');
                 }
                 img.close();
@@ -247,26 +252,15 @@ const Editions: React.FC = () => {
                 if (i % 2 === 0) await new Promise(r => setTimeout(r, 10));
             }
 
-            setStatusMessage('Enviando PDF a GitHub...');
+            setStatusMessage('Enviando PDF Binario a GitHub...');
             const pdfBlob = pdf.output('blob');
             const fileName = `Antroponómadas - ${editionTitle}.pdf`.replace(/\s+/g, ' ');
 
-            // Convert Blob to Base64 in browser to offload Worker CPU
-            const reader = new FileReader();
-            const base64Promise = new Promise<string>((resolve) => {
-                reader.onloadend = () => {
-                    const base64String = (reader.result as string).split(',')[1];
-                    resolve(base64String);
-                };
-                reader.readAsDataURL(pdfBlob);
-            });
+            const fd = new FormData();
+            fd.append('file', pdfBlob, fileName);
+            fd.append('fileName', fileName);
 
-            const base64 = await base64Promise;
-
-            await editionsAPI.uploadPDF(editionId, {
-                fileName,
-                base64
-            });
+            await editionsAPI.uploadPDF(editionId, fd);
 
             setStatusMessage('¡Todo listo! PDF pusheado a GitHub.');
 
