@@ -115,75 +115,49 @@ const Editions: React.FC = () => {
                 throw new Error('El ZIP no contiene imágenes válidas (.png, .jpg)');
             }
 
-            setStatusMessage(`Procesando ${imageFiles.length} imágenes dobles...`);
-
-            let globalPageCount = 1;
-            const totalSteps = imageFiles.length * 2;
-            let currentStep = 0;
-            const blobsCollector: Array<{ blob: Blob; width: number; height: number }> = [];
-
+            // Process each image as a single page
             for (let i = 0; i < imageFiles.length; i++) {
                 const filename = imageFiles[i];
                 const fileData = await contents.files[filename].async('blob');
-
                 const imgBitmap = await createImageBitmap(fileData);
-
-                // PERFORMANCE FIX: Use a persistent canvas for the whole loop
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                if (!ctx) throw new Error('No se pudo crear contexto de canvas');
 
                 const width = imgBitmap.width;
                 const height = imgBitmap.height;
+                const pageNum = i + 1;
+                const isCover = i === 0;
 
-                const processCrop = async (x: number, w: number, pageNum: number, isCover: boolean) => {
-                    const maxH_p = 1800;
-                    const scale = height > maxH_p ? maxH_p / height : 1;
-                    const targetW = Math.round(w * scale);
-                    const targetH = Math.round(height * scale);
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) throw new Error('No se pudo crear contexto de canvas');
 
-                    canvas.width = targetW;
-                    canvas.height = targetH;
-                    ctx.clearRect(0, 0, targetW, targetH);
-                    ctx.drawImage(imgBitmap, x, 0, w, height, 0, 0, targetW, targetH);
+                ctx.drawImage(imgBitmap, 0, 0);
 
-                    return new Promise<void>((resolve, reject) => {
-                        canvas.toBlob(async (blob) => {
-                            if (!blob) return reject('Error creating blob');
+                await new Promise<void>((resolve, reject) => {
+                    canvas.toBlob(async (blob) => {
+                        if (!blob) return reject('Error creating blob');
 
-                            // Store for PDF generation later
-                            blobsCollector.push({ blob, width: targetW, height: targetH });
+                        // Store for PDF generation later
+                        blobsCollector.push({ blob, width, height });
 
-                            const paddedPageNum = pageNum.toString().padStart(3, '0');
-                            const fd = new FormData();
-                            fd.append('file', blob, `page_${paddedPageNum}.webp`);
-                            fd.append('pageNumber', pageNum.toString());
-                            fd.append('isCover', isCover ? 'true' : 'false');
+                        const paddedPageNum = pageNum.toString().padStart(3, '0');
+                        const fd = new FormData();
+                        fd.append('file', blob, `page_${paddedPageNum}.webp`);
+                        fd.append('pageNumber', pageNum.toString());
+                        fd.append('isCover', isCover ? 'true' : 'false');
 
-                            try {
-                                await editionsAPI.uploadPage(editionId, fd);
-                                resolve();
-                            } catch (e) {
-                                reject(e);
-                            }
-                        }, 'image/webp', 0.7);
-                    });
-                };
+                        try {
+                            await editionsAPI.uploadPage(editionId, fd);
+                            resolve();
+                        } catch (e) {
+                            reject(e);
+                        }
+                    }, 'image/webp', 0.85);
+                });
 
-                const isSpread = width > (height * 1.2);
-                if (isSpread) {
-                    const halfWidth = Math.floor(width / 2);
-                    await processCrop(0, halfWidth, globalPageCount++, i === 0);
-                    if (i > 0) {
-                        await processCrop(halfWidth, width - halfWidth, globalPageCount++, false);
-                    }
-                } else {
-                    await processCrop(0, width, globalPageCount++, i === 0);
-                }
-
-                imgBitmap.close(); // PERFORMANCE FIX: Explicit memory release
-                currentStep += 2;
-                setProgress(Math.min(100, Math.round((currentStep / totalSteps) * 100)));
+                imgBitmap.close();
+                setProgress(Math.round(((i + 1) / imageFiles.length) * 100));
             }
 
             setProcessedBlobs(blobsCollector);
@@ -222,28 +196,22 @@ const Editions: React.FC = () => {
                 // Convert WebP/Binary to compressed JPEG with resizing
                 const img = await createImageBitmap(item.blob);
 
-                // Target: Max height 1800px (higher resolution) to avoid pixelation
-                const maxH = 1800;
-                const scale = item.height > maxH ? maxH / item.height : 1;
-                const targetW = Math.round(item.width * scale);
-                const targetH = Math.round(item.height * scale);
-
                 if (i === 0) {
                     pdf.deletePage(1);
-                    pdf.addPage([targetW, targetH], targetW > targetH ? 'l' : 'p');
+                    pdf.addPage([item.width, item.height], item.width > item.height ? 'l' : 'p');
                 } else {
-                    pdf.addPage([targetW, targetH], targetW > targetH ? 'l' : 'p');
+                    pdf.addPage([item.width, item.height], item.width > item.height ? 'l' : 'p');
                 }
 
+                // Quality 0.85 for PDF images to preserve text sharpness
                 const canvas = document.createElement('canvas');
-                canvas.width = targetW;
-                canvas.height = targetH;
+                canvas.width = item.width;
+                canvas.height = item.height;
                 const ctx = canvas.getContext('2d');
                 if (ctx) {
-                    ctx.drawImage(img, 0, 0, targetW, targetH);
-                    // Quality 0.7 is a better balance for high volumes
-                    const compressedData = canvas.toDataURL('image/jpeg', 0.7);
-                    pdf.addImage(compressedData, 'JPEG', 0, 0, targetW, targetH, undefined, 'FAST');
+                    ctx.drawImage(img, 0, 0);
+                    const compressedData = canvas.toDataURL('image/jpeg', 0.85);
+                    pdf.addImage(compressedData, 'JPEG', 0, 0, item.width, item.height, undefined, 'FAST');
                 }
                 img.close();
 
