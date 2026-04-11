@@ -176,10 +176,8 @@ export const editionsAPI = {
         const response = await api.get<APIResponse<Array<{ id: string; imagen_url: string; numero: number }>>>(`/api/admin/editions/${id}/pages`);
         return response.data.data!;
     },
-    uploadPDF: async (id: string, formData: FormData) => {
-        const response = await api.post<APIResponse>(`/api/admin/editions/${id}/pdf`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-        });
+    uploadPDF: async (id: string, data: { fileName: string; base64: string }) => {
+        const response = await api.post<APIResponse>(`/api/admin/editions/${id}/pdf`, data);
         return response.data;
     }
 };

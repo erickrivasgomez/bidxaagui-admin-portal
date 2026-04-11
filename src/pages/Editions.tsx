@@ -249,12 +249,24 @@ const Editions: React.FC = () => {
 
             setStatusMessage('Enviando PDF a GitHub...');
             const pdfBlob = pdf.output('blob');
-            const pdfFileName = `Antroponómadas - ${editionTitle}.pdf`.replace(/\s+/g, ' ');
+            const fileName = `Antroponómadas - ${editionTitle}.pdf`.replace(/\s+/g, ' ');
 
-            const pdfFormData = new FormData();
-            pdfFormData.append('file', pdfBlob, pdfFileName);
+            // Convert Blob to Base64 in browser to offload Worker CPU
+            const reader = new FileReader();
+            const base64Promise = new Promise<string>((resolve) => {
+                reader.onloadend = () => {
+                    const base64String = (reader.result as string).split(',')[1];
+                    resolve(base64String);
+                };
+                reader.readAsDataURL(pdfBlob);
+            });
 
-            await editionsAPI.uploadPDF(editionId, pdfFormData);
+            const base64 = await base64Promise;
+
+            await editionsAPI.uploadPDF(editionId, {
+                fileName,
+                base64
+            });
 
             setStatusMessage('¡Todo listo! PDF pusheado a GitHub.');
 
