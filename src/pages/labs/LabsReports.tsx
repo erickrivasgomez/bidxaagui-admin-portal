@@ -55,7 +55,7 @@ export const LabsReports: React.FC<{ view?: string }> = ({ view }) => {
           <section className="labs-card" style={{ minHeight: '300px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
               <div className="labs-card-label">Ventas Semanales</div>
-              <BarChartIcon style={{ color: 'var(--text-secondary)' }} />
+              <div style={{ color: 'var(--text-secondary)' }}><BarChartIcon /></div>
             </div>
             <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end', gap: '1rem', justifyContent: 'space-between', padding: '0 1rem' }}>
               {[40, 70, 45, 90, 65, 80, 100].map((h, i) => (
@@ -79,7 +79,7 @@ export const LabsReports: React.FC<{ view?: string }> = ({ view }) => {
           <section className="labs-card" style={{ minHeight: '300px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
               <div className="labs-card-label">Top Categorías</div>
-              <PieChartIcon style={{ color: 'var(--text-secondary)' }} />
+              <div style={{ color: 'var(--text-secondary)' }}><PieChartIcon /></div>
             </div>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem', justifyContent: 'center' }}>
               {[

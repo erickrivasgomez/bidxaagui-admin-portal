@@ -67,7 +67,7 @@ export const LabsFinance: React.FC<{ view?: string }> = ({ view }) => {
             <div className="labs-card-label">Flujo de Efectivo Mensual</div>
             <div className="labs-card-value" style={{ color: 'var(--success)' }}>+$12,450.00</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-              <TrendingUpIcon style={{ color: 'var(--success)' }} /> 24% más alto que Abril
+              <div style={{ color: 'var(--success)' }}><TrendingUpIcon /></div> 24% más alto que Abril
             </div>
           </div>
           

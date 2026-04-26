@@ -119,9 +119,9 @@ export const LabsSuppliers: React.FC<{ view?: string }> = ({ view }) => {
                   <div className="labs-row-subtitle">{supplier.phone}</div>
                 </div>
                 <div className="labs-row-main" style={{ flexDirection: 'row', gap: '8px', alignItems: 'center', justifyContent: 'flex-end' }}>
-                  <EditIcon style={{ cursor: 'pointer', color: 'var(--text-secondary)' }} />
-                  <TrashIcon style={{ cursor: 'pointer', color: 'var(--error)' }} />
-                  <MoreVerticalIcon style={{ cursor: 'pointer', color: 'var(--text-secondary)' }} />
+                  <div style={{ cursor: 'pointer', color: 'var(--text-secondary)' }}><EditIcon /></div>
+                  <div style={{ cursor: 'pointer', color: 'var(--error)' }}><TrashIcon /></div>
+                  <div style={{ cursor: 'pointer', color: 'var(--text-secondary)' }}><MoreVerticalIcon /></div>
                 </div>
               </div>
             ))}

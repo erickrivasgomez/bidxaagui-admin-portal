@@ -115,6 +115,9 @@ const Editions: React.FC = () => {
                 throw new Error('El ZIP no contiene imágenes válidas (.png, .jpg)');
             }
 
+            // Store blobs for PDF generation
+            const blobsCollector: Array<{ blob: Blob; width: number; height: number }> = [];
+
             // Process each image as a single page
             for (let i = 0; i < imageFiles.length; i++) {
                 const filename = imageFiles[i];
