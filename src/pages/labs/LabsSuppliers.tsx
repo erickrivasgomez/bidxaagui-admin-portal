@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './LabsLayout.css';
+import { suppliersApi, type Supplier, type CreateSupplierRequest, type UpdateSupplierRequest } from '../../api/suppliers';
+import { SupplierModal } from '../../components/SupplierModal';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 
 // SVG Icons
 const SearchIcon = () => (
@@ -52,24 +55,53 @@ const ChevronDownIcon = () => (
   </svg>
 );
 
-interface Supplier {
-  id: string;
-  name: string;
-  phone: string;
-  city: string;
-}
-
-const mockSuppliers: Supplier[] = [
-  { id: '1023', name: 'Envases Globales S.A.', phone: '+52 55 1234 5678', city: 'Ciudad de México' },
-  { id: '1024', name: 'Productores Orgánicos del Sur', phone: '+52 951 987 6543', city: 'Oaxaca' },
-  { id: '1025', name: 'Etiquetas y Papel', phone: '+52 33 5555 4444', city: 'Guadalajara' },
-  { id: '1026', name: 'Distribuidora Botánica', phone: '+52 222 111 2222', city: 'Puebla' },
-];
+const RefreshIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+    <path d="M3 3v5h5" />
+    <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+    <path d="M16 21h5v-5" />
+  </svg>
+);
 
 export const LabsSuppliers: React.FC<{ view?: string }> = ({ view }) => {
-  const [expandedRows, setExpandedRows] = React.useState<Set<string>>(new Set());
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingSupplier, setDeletingSupplier] = useState<Supplier | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
-  if (view !== 'suppliers') return null;
+  const fetchSuppliers = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await suppliersApi.list();
+      setSuppliers(response.data.data);
+    } catch (err) {
+      console.error('Failed to fetch suppliers:', err);
+      setError('Error al cargar proveedores. Usando datos de ejemplo.');
+      // Fallback to mock data for now
+      setSuppliers([
+        { id: '1023', name: 'Envases Globales S.A.', phone: '+52 55 1234 5678', city: 'Ciudad de México', createdAt: '', updatedAt: '' },
+        { id: '1024', name: 'Productores Orgánicos del Sur', phone: '+52 951 987 6543', city: 'Oaxaca', createdAt: '', updatedAt: '' },
+        { id: '1025', name: 'Etiquetas y Papel', phone: '+52 33 5555 4444', city: 'Guadalajara', createdAt: '', updatedAt: '' },
+        { id: '1026', name: 'Distribuidora Botánica', phone: '+52 222 111 2222', city: 'Puebla', createdAt: '', updatedAt: '' },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (view === 'suppliers') {
+      fetchSuppliers();
+    }
+  }, [view]);
 
   const toggleRow = (id: string) => {
     const newExpanded = new Set(expandedRows);
@@ -81,6 +113,55 @@ export const LabsSuppliers: React.FC<{ view?: string }> = ({ view }) => {
     setExpandedRows(newExpanded);
   };
 
+  const handleCreate = () => {
+    setEditingSupplier(null);
+    setModalOpen(true);
+  };
+
+  const handleEdit = (supplier: Supplier) => {
+    setEditingSupplier(supplier);
+    setModalOpen(true);
+  };
+
+  const handleSave = async (data: CreateSupplierRequest | UpdateSupplierRequest) => {
+    setModalLoading(true);
+    try {
+      if (editingSupplier) {
+        await suppliersApi.update(editingSupplier.id, data);
+      } else {
+        await suppliersApi.create(data as CreateSupplierRequest);
+      }
+      await fetchSuppliers();
+    } catch (err) {
+      console.error('Failed to save supplier:', err);
+      throw err;
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const handleDeleteClick = (supplier: Supplier) => {
+    setDeletingSupplier(supplier);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deletingSupplier) return;
+    setDeleteLoading(true);
+    try {
+      await suppliersApi.delete(deletingSupplier.id);
+      await fetchSuppliers();
+      setDeleteDialogOpen(false);
+      setDeletingSupplier(null);
+    } catch (err) {
+      console.error('Failed to delete supplier:', err);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  if (view !== 'suppliers') return null;
+
   return (
     <>
       <header className="labs-header">
@@ -88,70 +169,114 @@ export const LabsSuppliers: React.FC<{ view?: string }> = ({ view }) => {
           <h1>Proveedores</h1>
         </div>
         <div className="labs-header-actions">
+          <div className="labs-icon-btn" onClick={fetchSuppliers} title="Recargar">
+            <RefreshIcon />
+          </div>
           <div className="labs-icon-btn"><SearchIcon /></div>
           <div className="labs-icon-btn"><FilterIcon /></div>
-          <button style={{ 
-            background: 'var(--green)', 
-            color: 'white', 
-            border: 'none', 
-            borderRadius: '12px',
-            padding: '0 16px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontWeight: 600,
-            cursor: 'pointer'
-          }}>
+          <button 
+            onClick={handleCreate}
+            style={{ 
+              background: 'var(--green)', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '12px',
+              padding: '0 16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
             <PlusIcon /> Nuevo Proveedor
           </button>
         </div>
       </header>
 
       <div className="labs-content">
+        {error && (
+          <div style={{ 
+            padding: 'var(--space-md)', 
+            background: 'rgba(200, 92, 74, 0.1)', 
+            border: '1px solid var(--error)', 
+            borderRadius: 'var(--radius-md)', 
+            color: 'var(--error)', 
+            marginBottom: 'var(--space-lg)',
+            fontSize: '0.875rem'
+          }}>
+            {error}
+          </div>
+        )}
+
         <section className="labs-section">
           <div className="labs-section-header">
             <h3>Directorio de Socios</h3>
           </div>
-          <div className="labs-list">
-            {mockSuppliers.map(supplier => (
-              <React.Fragment key={supplier.id}>
-                <div 
-                  className={`labs-row labs-row-expandable ${expandedRows.has(supplier.id) ? 'expanded' : ''}`} 
-                  style={{ gridTemplateColumns: '40px 1fr 60px' }}
-                  onClick={() => toggleRow(supplier.id)}
-                >
-                  <div className="labs-row-icon">
-                    <TruckIcon />
-                  </div>
-                  <div className="labs-row-main">
-                    <div className="labs-row-title">{supplier.name}</div>
-                    <div className="labs-row-subtitle">ID: {supplier.id}</div>
-                  </div>
-                  <div className="labs-row-main labs-row-actions">
-                    <div className="labs-row-chevron"><ChevronDownIcon /></div>
-                  </div>
-                </div>
-                <div className="labs-row-expanded-content">
-                  <div className="labs-expanded-detail">
-                    <div>
-                      <div className="labs-expanded-detail-label">Ciudad</div>
-                      <div className="labs-expanded-detail-value">{supplier.city}</div>
+          {loading ? (
+            <div style={{ padding: 'var(--space-2xl)', textAlign: 'center', color: 'var(--text-secondary)' }}>
+              Cargando...
+            </div>
+          ) : (
+            <div className="labs-list">
+              {suppliers.map(supplier => (
+                <React.Fragment key={supplier.id}>
+                  <div 
+                    className={`labs-row labs-row-expandable ${expandedRows.has(supplier.id) ? 'expanded' : ''}`} 
+                    style={{ gridTemplateColumns: '40px 1fr 60px' }}
+                    onClick={() => toggleRow(supplier.id)}
+                  >
+                    <div className="labs-row-icon">
+                      <TruckIcon />
                     </div>
-                    <div>
-                      <div className="labs-expanded-detail-label">Teléfono</div>
-                      <div className="labs-expanded-detail-value">{supplier.phone}</div>
+                    <div className="labs-row-main">
+                      <div className="labs-row-title">{supplier.name}</div>
+                      <div className="labs-row-subtitle">ID: {supplier.id}</div>
+                    </div>
+                    <div className="labs-row-main labs-row-actions">
+                      <div className="labs-row-chevron"><ChevronDownIcon /></div>
                     </div>
                   </div>
-                  <div className="labs-row-main labs-row-actions" style={{ marginTop: 'var(--space-md)' }}>
-                    <div style={{ cursor: 'pointer', color: 'var(--text-secondary)' }}><EditIcon /></div>
-                    <div style={{ cursor: 'pointer', color: 'var(--error)' }}><TrashIcon /></div>
+                  <div className="labs-row-expanded-content">
+                    <div className="labs-expanded-detail">
+                      <div>
+                        <div className="labs-expanded-detail-label">Ciudad</div>
+                        <div className="labs-expanded-detail-value">{supplier.city}</div>
+                      </div>
+                      <div>
+                        <div className="labs-expanded-detail-label">Teléfono</div>
+                        <div className="labs-expanded-detail-value">{supplier.phone}</div>
+                      </div>
+                    </div>
+                    <div className="labs-row-main labs-row-actions" style={{ marginTop: 'var(--space-md)' }}>
+                      <div onClick={(e) => { e.stopPropagation(); handleEdit(supplier); }} style={{ cursor: 'pointer', color: 'var(--text-secondary)' }}><EditIcon /></div>
+                      <div onClick={(e) => { e.stopPropagation(); handleDeleteClick(supplier); }} style={{ cursor: 'pointer', color: 'var(--error)' }}><TrashIcon /></div>
+                    </div>
                   </div>
-                </div>
-              </React.Fragment>
-            ))}
-          </div>
+                </React.Fragment>
+              ))}
+            </div>
+          )}
         </section>
       </div>
+
+      <SupplierModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSave={handleSave}
+        supplier={editingSupplier || undefined}
+        loading={modalLoading}
+      />
+
+      <ConfirmDialog
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Eliminar Proveedor"
+        message={`¿Estás seguro de eliminar a ${deletingSupplier?.name}? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        loading={deleteLoading}
+      />
     </>
   );
 };

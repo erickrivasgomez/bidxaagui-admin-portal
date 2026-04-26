@@ -604,6 +604,243 @@
   color: var(--text-primary);
 }
 
+/* Modal Styles */
+.labs-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+}
+
+.labs-modal {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+}
+
+.labs-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--border);
+}
+
+.labs-modal-header h2 {
+  font-size: calc(1.25rem * var(--labs-font-size-base));
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.labs-modal-close {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.labs-modal-close:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.labs-modal-form {
+  padding: var(--space-lg);
+}
+
+.labs-modal-footer {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: flex-end;
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border);
+}
+
+.labs-modal-btn {
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.labs-modal-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.labs-modal-btn-secondary {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.labs-modal-btn-secondary:hover:not(:disabled) {
+  background: var(--bg-app);
+}
+
+.labs-modal-btn-primary {
+  background: var(--green);
+  color: white;
+  border: 1px solid var(--green);
+}
+
+.labs-modal-btn-primary:hover:not(:disabled) {
+  background: var(--green-hover);
+}
+
+.labs-modal-btn-danger {
+  background: var(--error);
+  color: white;
+  border: 1px solid var(--error);
+}
+
+.labs-modal-btn-danger:hover:not(:disabled) {
+  background: #c53030;
+}
+
+/* Confirm Dialog Specific */
+.labs-modal-confirm {
+  max-width: 400px;
+  text-align: center;
+}
+
+.labs-modal-confirm-icon {
+  color: var(--error);
+  margin-bottom: var(--space-md);
+}
+
+.labs-modal-confirm-title {
+  font-size: calc(1.25rem * var(--labs-font-size-base));
+  font-weight: 600;
+  margin: 0 0 var(--space-md);
+  color: var(--text-primary);
+}
+
+.labs-modal-confirm-message {
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-lg);
+  line-height: 1.5;
+}
+
+/* Form Input Styles */
+.labs-form-input-wrapper {
+  position: relative;
+  margin-bottom: var(--space-md);
+}
+
+.labs-form-label {
+  display: block;
+  margin-bottom: var(--space-xs);
+  font-size: calc(0.875rem * var(--labs-font-size-base));
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.labs-form-input {
+  width: 100%;
+  background: var(--bg-app);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  color: var(--text-primary);
+  outline: none;
+  font-size: 16px;
+  transition: border-color 0.2s ease;
+  min-height: 44px;
+}
+
+.labs-form-input:focus {
+  border-color: var(--green);
+}
+
+.labs-form-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.labs-form-error {
+  color: var(--error);
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
+
+/* Autocomplete Dropdown */
+.labs-autocomplete {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-top: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: var(--shadow-md);
+}
+
+.labs-autocomplete-item {
+  padding: var(--space-sm) var(--space-md);
+  cursor: pointer;
+  transition: background 0.2s ease;
+  font-size: 16px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.labs-autocomplete-item:hover,
+.labs-autocomplete-item.active {
+  background: var(--bg-hover);
+}
+
+/* iPhone-specific modal styles */
+@media (max-width: 430px) {
+  .labs-modal {
+    max-width: 100%;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    margin: 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: 85vh;
+    padding-bottom: calc(var(--space-lg) + env(safe-area-inset-bottom));
+  }
+  
+  .labs-modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .labs-modal-confirm {
+    max-width: 100%;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+}
+
 /* Animations */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
