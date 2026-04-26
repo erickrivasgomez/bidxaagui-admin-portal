@@ -87,10 +87,10 @@ export const LabsSuppliers: React.FC<{ view?: string }> = ({ view }) => {
       setError('Error al cargar proveedores. Usando datos de ejemplo.');
       // Fallback to mock data for now
       setSuppliers([
-        { id: '1023', name: 'Envases Globales S.A.', phone: '+52 55 1234 5678', city: 'Ciudad de México', createdAt: '', updatedAt: '' },
-        { id: '1024', name: 'Productores Orgánicos del Sur', phone: '+52 951 987 6543', city: 'Oaxaca', createdAt: '', updatedAt: '' },
-        { id: '1025', name: 'Etiquetas y Papel', phone: '+52 33 5555 4444', city: 'Guadalajara', createdAt: '', updatedAt: '' },
-        { id: '1026', name: 'Distribuidora Botánica', phone: '+52 222 111 2222', city: 'Puebla', createdAt: '', updatedAt: '' },
+        { id: '1023', name: 'Envases Globales S.A.', phone: '+52 55 1234 5678', city: 'Ciudad de México', created_at: '', updated_at: '' },
+        { id: '1024', name: 'Productores Orgánicos del Sur', phone: '+52 951 987 6543', city: 'Oaxaca', created_at: '', updated_at: '' },
+        { id: '1025', name: 'Etiquetas y Papel', phone: '+52 33 5555 4444', city: 'Guadalajara', created_at: '', updated_at: '' },
+        { id: '1026', name: 'Distribuidora Botánica', phone: '+52 222 111 2222', city: 'Puebla', created_at: '', updated_at: '' },
       ]);
     } finally {
       setLoading(false);
