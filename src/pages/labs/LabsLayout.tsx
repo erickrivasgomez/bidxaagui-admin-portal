@@ -71,7 +71,7 @@ const UserIcon = () => (
   </svg>
 );
 
-const Sidebar = ({ currentView, setView }: { currentView: string; setView: (view: string) => void }) => (
+const Sidebar = ({ currentView, setView, density, setDensity }: { currentView: string; setView: (view: string) => void; density: string; setDensity: (density: string) => void }) => (
   <aside className="labs-sidebar">
     <div className="labs-logo">
       <div className="labs-logo-icon" />
@@ -99,6 +99,30 @@ const Sidebar = ({ currentView, setView }: { currentView: string; setView: (view
     </nav>
     <div className="labs-nav-footer">
       <a href="#" className="labs-nav-link"><SettingsIcon /> Configuración</a>
+      
+      <div className="labs-density-selector">
+        <div className="labs-density-label">DENSIDAD</div>
+        <div className="labs-density-buttons">
+          <button 
+            className={`labs-density-btn ${density === 'default' ? 'active' : ''}`}
+            onClick={() => setDensity('default')}
+          >
+            Normal
+          </button>
+          <button 
+            className={`labs-density-btn ${density === 'compact' ? 'active' : ''}`}
+            onClick={() => setDensity('compact')}
+          >
+            Compacto
+          </button>
+          <button 
+            className={`labs-density-btn ${density === 'ultra-compact' ? 'active' : ''}`}
+            onClick={() => setDensity('ultra-compact')}
+          >
+            Ultra
+          </button>
+        </div>
+      </div>
     </div>
   </aside>
 );
@@ -107,12 +131,14 @@ interface LabsLayoutProps {
   children: React.ReactNode;
   currentView: string;
   setView: (view: string) => void;
+  density: string;
+  setDensity: (density: string) => void;
 }
 
-export const LabsLayout: React.FC<LabsLayoutProps> = ({ children, currentView, setView }) => {
+export const LabsLayout: React.FC<LabsLayoutProps> = ({ children, currentView, setView, density, setDensity }) => {
   return (
-    <div className="labs-wrapper">
-      <Sidebar currentView={currentView} setView={setView} />
+    <div className="labs-wrapper" data-labs-density={density}>
+      <Sidebar currentView={currentView} setView={setView} density={density} setDensity={setDensity} />
       <main className="labs-main">
         {children}
 

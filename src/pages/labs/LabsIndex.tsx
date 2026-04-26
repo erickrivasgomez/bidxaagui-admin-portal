@@ -7,8 +7,24 @@ import { LabsFinance } from './LabsFinance';
 import { LabsSuppliers } from './LabsSuppliers';
 import { LabsReports } from './LabsReports';
 
+const DENSITY_STORAGE_KEY = 'labs-density-preference';
+
+const getInitialDensity = () => {
+  const savedDensity = localStorage.getItem(DENSITY_STORAGE_KEY);
+  if (savedDensity && ['default', 'compact', 'ultra-compact'].includes(savedDensity)) {
+    return savedDensity;
+  }
+  return 'default';
+};
+
 export const LabsIndex = () => {
   const [currentView, setCurrentView] = useState('dashboard');
+  const [density, setDensity] = useState(getInitialDensity);
+
+  const handleDensityChange = (newDensity: string) => {
+    setDensity(newDensity);
+    localStorage.setItem(DENSITY_STORAGE_KEY, newDensity);
+  };
 
   const renderView = () => {
     switch(currentView) {
@@ -23,7 +39,7 @@ export const LabsIndex = () => {
   };
 
   return (
-    <LabsLayout currentView={currentView} setView={setCurrentView}>
+    <LabsLayout currentView={currentView} setView={setCurrentView} density={density} setDensity={handleDensityChange}>
       {renderView()}
     </LabsLayout>
   );
