@@ -9,6 +9,7 @@ import Campaigns from './pages/Campaigns';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicOnlyRoute from './components/PublicOnlyRoute';
 import { useAuthStore } from './store/authStore';
+import { LabsIndex } from './pages/labs/LabsIndex';
 import './App.css';
 
 function App() {
@@ -68,6 +69,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Campaigns />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/labs"
+          element={
+            <ProtectedRoute>
+              <LabsIndex />
             </ProtectedRoute>
           }
         />
