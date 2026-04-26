@@ -46,11 +46,9 @@ const TrashIcon = () => (
   </svg>
 );
 
-const MoreVerticalIcon = () => (
+const ChevronDownIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="1" />
-    <circle cx="12" cy="5" r="1" />
-    <circle cx="12" cy="19" r="1" />
+    <path d="m6 9 6 6 6-6" />
   </svg>
 );
 
@@ -69,7 +67,19 @@ const mockSuppliers: Supplier[] = [
 ];
 
 export const LabsSuppliers: React.FC<{ view?: string }> = ({ view }) => {
+  const [expandedRows, setExpandedRows] = React.useState<Set<string>>(new Set());
+
   if (view !== 'suppliers') return null;
+
+  const toggleRow = (id: string) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(id)) {
+      newExpanded.delete(id);
+    } else {
+      newExpanded.add(id);
+    }
+    setExpandedRows(newExpanded);
+  };
 
   return (
     <>
@@ -104,26 +114,40 @@ export const LabsSuppliers: React.FC<{ view?: string }> = ({ view }) => {
           </div>
           <div className="labs-list">
             {mockSuppliers.map(supplier => (
-              <div key={supplier.id} className="labs-row" style={{ gridTemplateColumns: '40px 1.5fr 1fr 1fr 60px' }}>
-                <div className="labs-row-icon">
-                  <TruckIcon />
+              <React.Fragment key={supplier.id}>
+                <div 
+                  className={`labs-row labs-row-expandable ${expandedRows.has(supplier.id) ? 'expanded' : ''}`} 
+                  style={{ gridTemplateColumns: '40px 1fr 60px' }}
+                  onClick={() => toggleRow(supplier.id)}
+                >
+                  <div className="labs-row-icon">
+                    <TruckIcon />
+                  </div>
+                  <div className="labs-row-main">
+                    <div className="labs-row-title">{supplier.name}</div>
+                    <div className="labs-row-subtitle">ID: {supplier.id}</div>
+                  </div>
+                  <div className="labs-row-main labs-row-actions">
+                    <div className="labs-row-chevron"><ChevronDownIcon /></div>
+                  </div>
                 </div>
-                <div className="labs-row-main">
-                  <div className="labs-row-title">{supplier.name}</div>
-                  <div className="labs-row-subtitle">ID: {supplier.id}</div>
+                <div className="labs-row-expanded-content">
+                  <div className="labs-expanded-detail">
+                    <div>
+                      <div className="labs-expanded-detail-label">Ciudad</div>
+                      <div className="labs-expanded-detail-value">{supplier.city}</div>
+                    </div>
+                    <div>
+                      <div className="labs-expanded-detail-label">Teléfono</div>
+                      <div className="labs-expanded-detail-value">{supplier.phone}</div>
+                    </div>
+                  </div>
+                  <div className="labs-row-main labs-row-actions" style={{ marginTop: 'var(--space-md)' }}>
+                    <div style={{ cursor: 'pointer', color: 'var(--text-secondary)' }}><EditIcon /></div>
+                    <div style={{ cursor: 'pointer', color: 'var(--error)' }}><TrashIcon /></div>
+                  </div>
                 </div>
-                <div className="labs-row-main" style={{ justifyContent: 'center' }}>
-                  <div className="labs-row-subtitle" style={{ color: 'var(--text-primary)' }}>{supplier.city}</div>
-                </div>
-                <div className="labs-row-main" style={{ justifyContent: 'center' }}>
-                  <div className="labs-row-subtitle">{supplier.phone}</div>
-                </div>
-                <div className="labs-row-main" style={{ flexDirection: 'row', gap: '8px', alignItems: 'center', justifyContent: 'flex-end' }}>
-                  <div style={{ cursor: 'pointer', color: 'var(--text-secondary)' }}><EditIcon /></div>
-                  <div style={{ cursor: 'pointer', color: 'var(--error)' }}><TrashIcon /></div>
-                  <div style={{ cursor: 'pointer', color: 'var(--text-secondary)' }}><MoreVerticalIcon /></div>
-                </div>
-              </div>
+              </React.Fragment>
             ))}
           </div>
         </section>

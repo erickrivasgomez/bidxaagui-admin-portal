@@ -39,6 +39,12 @@ const AlertTriangleIcon = () => (
   </svg>
 );
 
+const ChevronDownIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m6 9 6 6 6-6" />
+  </svg>
+);
+
 interface InventoryItem {
   id: string;
   name: string;
@@ -57,7 +63,19 @@ const inventoryMock: InventoryItem[] = [
 ];
 
 export const LabsInventory: React.FC<{ view?: string }> = ({ view }) => {
+  const [expandedRows, setExpandedRows] = React.useState<Set<string>>(new Set());
+
   if (view !== 'inventory') return null;
+
+  const toggleRow = (id: string) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(id)) {
+      newExpanded.delete(id);
+    } else {
+      newExpanded.add(id);
+    }
+    setExpandedRows(newExpanded);
+  };
 
   return (
     <>
@@ -79,24 +97,38 @@ export const LabsInventory: React.FC<{ view?: string }> = ({ view }) => {
           </div>
           <div className="labs-list">
             {inventoryMock.map(item => (
-              <div key={item.id} className="labs-row" style={{ gridTemplateColumns: '40px 1fr 100px 80px' }}>
-                <div className="labs-row-icon" style={{ background: item.warning ? 'rgba(200, 92, 74, 0.1)' : 'var(--bg-hover)', color: item.warning ? 'var(--error)' : 'var(--green)' }}>
-                  {item.warning ? <AlertTriangleIcon /> : <PackageIcon />}
-                </div>
-                <div className="labs-row-main">
-                  <div className="labs-row-title">{item.name}</div>
-                  <div className="labs-row-subtitle">{item.category}</div>
-                </div>
-                <div className="labs-row-main" style={{ alignItems: 'flex-end', paddingRight: '1rem' }}>
-                  <div className="labs-row-subtitle" style={{ fontSize: '10px', textTransform: 'uppercase' }}>Stock</div>
-                  <div className="labs-row-title" style={{ color: item.warning ? 'var(--error)' : 'var(--text-primary)' }}>
-                    {item.stock} <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>/ {item.minStock}</span>
+              <React.Fragment key={item.id}>
+                <div 
+                  className={`labs-row labs-row-expandable ${expandedRows.has(item.id) ? 'expanded' : ''}`} 
+                  style={{ gridTemplateColumns: '40px 1fr 60px' }}
+                  onClick={() => toggleRow(item.id)}
+                >
+                  <div className="labs-row-icon" style={{ background: item.warning ? 'rgba(200, 92, 74, 0.1)' : 'var(--bg-hover)', color: item.warning ? 'var(--error)' : 'var(--green)' }}>
+                    {item.warning ? <AlertTriangleIcon /> : <PackageIcon />}
+                  </div>
+                  <div className="labs-row-main">
+                    <div className="labs-row-title">{item.name}</div>
+                    <div className="labs-row-subtitle">{item.category}</div>
+                  </div>
+                  <div className="labs-row-main labs-row-actions">
+                    <div className="labs-row-chevron"><ChevronDownIcon /></div>
                   </div>
                 </div>
-                <div className="labs-row-amount" style={{ color: 'var(--text-secondary)', fontWeight: 500, fontSize: '1rem' }}>
-                  ${item.price.toFixed(2)}
+                <div className="labs-row-expanded-content">
+                  <div className="labs-expanded-detail">
+                    <div>
+                      <div className="labs-expanded-detail-label">Stock</div>
+                      <div className="labs-expanded-detail-value" style={{ color: item.warning ? 'var(--error)' : 'var(--text-primary)' }}>
+                        {item.stock} / {item.minStock}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="labs-expanded-detail-label">Precio</div>
+                      <div className="labs-expanded-detail-value">${item.price.toFixed(2)}</div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              </React.Fragment>
             ))}
           </div>
         </section>

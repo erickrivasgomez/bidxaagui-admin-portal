@@ -79,6 +79,7 @@ export const LabsSales: React.FC<{ view?: string }> = ({ view }) => {
                 <SearchIcon style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
                 <input 
                   type="text" 
+                  inputMode="search"
                   placeholder="Buscar producto a vender..." 
                   style={{ 
                     width: '100%', 
@@ -87,7 +88,8 @@ export const LabsSales: React.FC<{ view?: string }> = ({ view }) => {
                     borderRadius: '12px', 
                     padding: '10px 10px 10px 36px',
                     color: 'var(--text-primary)',
-                    outline: 'none'
+                    outline: 'none',
+                    fontSize: '16px' // Prevents iOS zoom on focus
                   }} 
                 />
               </div>
