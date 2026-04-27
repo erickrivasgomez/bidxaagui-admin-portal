@@ -1,6 +1,4 @@
-import axios from 'axios';
-
-const API_URL = import.meta.env.VITE_API_URL || 'https://api.bidxaagui.com';
+import api from '../services/api';
 
 export interface Supplier {
   id: string;
@@ -44,20 +42,20 @@ export interface CitiesResponse {
 
 export const suppliersApi = {
   list: (params?: ListSuppliersQuery) => 
-    axios.get<ListSuppliersResponse>(`${API_URL}/api/admin/suppliers`, { params }),
+    api.get<ListSuppliersResponse>('/api/admin/suppliers', { params }),
   
   get: (id: string) => 
-    axios.get<{ data: Supplier }>(`${API_URL}/api/admin/suppliers/${id}`),
+    api.get<{ data: Supplier }>(`/api/admin/suppliers/${id}`),
   
   create: (data: CreateSupplierRequest) => 
-    axios.post<{ data: Supplier }>(`${API_URL}/api/admin/suppliers`, data),
+    api.post<{ data: Supplier }>('/api/admin/suppliers', data),
   
   update: (id: string, data: UpdateSupplierRequest) => 
-    axios.put<{ data: Supplier }>(`${API_URL}/api/admin/suppliers/${id}`, data),
+    api.put<{ data: Supplier }>(`/api/admin/suppliers/${id}`, data),
   
   delete: (id: string) => 
-    axios.delete(`${API_URL}/api/admin/suppliers/${id}`),
+    api.delete(`/api/admin/suppliers/${id}`),
   
   getCities: () => 
-    axios.get<CitiesResponse>(`${API_URL}/api/admin/suppliers/cities`),
+    api.get<CitiesResponse>('/api/admin/suppliers/cities'),
 };
