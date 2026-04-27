@@ -42,20 +42,20 @@ export interface CitiesResponse {
 
 export const suppliersApi = {
   list: (params?: ListSuppliersQuery) => 
-    api.get<ListSuppliersResponse>('/api/admin/suppliers', { params }),
+    api.get<{ success: boolean; message: string; data: ListSuppliersResponse }>('/api/admin/suppliers', { params }),
   
   get: (id: string) => 
-    api.get<{ data: Supplier }>(`/api/admin/suppliers/${id}`),
+    api.get<{ success: boolean; message: string; data: { data: Supplier } }>(`/api/admin/suppliers/${id}`),
   
   create: (data: CreateSupplierRequest) => 
-    api.post<{ data: Supplier }>('/api/admin/suppliers', data),
+    api.post<{ success: boolean; message: string; data: { data: Supplier } }>('/api/admin/suppliers', data),
   
   update: (id: string, data: UpdateSupplierRequest) => 
-    api.put<{ data: Supplier }>(`/api/admin/suppliers/${id}`, data),
+    api.put<{ success: boolean; message: string; data: { data: Supplier } }>(`/api/admin/suppliers/${id}`, data),
   
   delete: (id: string) => 
-    api.delete(`/api/admin/suppliers/${id}`),
+    api.delete<{ success: boolean; message: string }>(`/api/admin/suppliers/${id}`),
   
   getCities: () => 
-    api.get<CitiesResponse>('/api/admin/suppliers/cities'),
+    api.get<{ success: boolean; message: string; data: CitiesResponse }>('/api/admin/suppliers/cities'),
 };

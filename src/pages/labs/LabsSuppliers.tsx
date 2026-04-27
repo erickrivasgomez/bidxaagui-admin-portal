@@ -81,7 +81,7 @@ export const LabsSuppliers: React.FC<{ view?: string }> = ({ view }) => {
     setError(null);
     try {
       const response = await suppliersApi.list();
-      setSuppliers(response.data.data);
+      setSuppliers(response.data.data.data);
     } catch (err) {
       console.error('Failed to fetch suppliers:', err);
       setError('Error al cargar proveedores. Usando datos de ejemplo.');

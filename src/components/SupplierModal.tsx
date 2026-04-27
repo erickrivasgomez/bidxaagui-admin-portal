@@ -51,7 +51,7 @@ export const SupplierModal: React.FC<SupplierModalProps> = ({ isOpen, onClose, o
     const fetchCities = async () => {
       try {
         const response = await suppliersApi.getCities();
-        setCities(response.data.cities);
+        setCities(response.data.data.cities);
       } catch (error) {
         console.error('Failed to fetch cities:', error);
       }
