@@ -2,11 +2,31 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import AdminHeader from '../components/AdminHeader';
+import { ModuleHub, ModuleCard } from '../components/ModuleHub';
 import './Dashboard.css';
 
 const Dashboard: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuthStore();
+
+    const mainModules: ModuleCard[] = [
+        {
+            id: 'antroponomadas',
+            title: 'Antroponómadas',
+            icon: '📚',
+            description: 'Gestión editorial: Ediciones, Campañas, Suscriptores',
+            status: 'active',
+            onClick: () => navigate('/antroponomadas'),
+        },
+        {
+            id: 'lab',
+            title: 'Laboratorio',
+            icon: '🧪',
+            description: 'Gestión de operaciones: Proveedores, Compras, Ventas',
+            status: 'active',
+            onClick: () => navigate('/lab'),
+        },
+    ];
 
     return (
         <div className="dashboard-container">
@@ -22,35 +42,12 @@ const Dashboard: React.FC = () => {
                         </p>
                     </div>
 
-                    {/* Dashboard Cards */}
-                    <div className="dashboard-grid">
-                        <div
-                            className="dashboard-card card clickable"
-                            onClick={() => navigate('/subscribers')}
-                        >
-                            <h3>📧 Suscriptores</h3>
-                            <p className="card-value">✓ Activo</p>
-                            <p className="text-muted">Gestionar suscriptores</p>
-                        </div>
-
-                        <div
-                            className="dashboard-card card clickable"
-                            onClick={() => navigate('/editions')}
-                        >
-                            <h3>📚 Ediciones</h3>
-                            <p className="card-value">✓ Activo</p>
-                            <p className="text-muted">Gestionar ediciones</p>
-                        </div>
-
-                        <div
-                            className="dashboard-card card clickable"
-                            onClick={() => navigate('/campaigns')}
-                        >
-                            <h3>✉️ Campañas</h3>
-                            <p className="card-value">✓ Activo</p>
-                            <p className="text-muted">Gestionar envíos</p>
-                        </div>
-                    </div>
+                    {/* Main Modules */}
+                    <ModuleHub
+                        title="Módulos Principales"
+                        description="Selecciona un módulo para comenzar"
+                        modules={mainModules}
+                    />
                 </div>
             </main>
         </div>

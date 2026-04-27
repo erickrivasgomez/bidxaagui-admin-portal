@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './LabsLayout.css';
-import { getSuppliersUseCase, createSupplierUseCase, updateSupplierUseCase, deleteSupplierUseCase } from '../../core/modules/laboratorio/infrastructure/suppliers.dependencies';
+import { useSuppliers } from '../../core/modules/laboratorio/application/useSuppliers';
 import type { Supplier, CreateSupplierRequest, UpdateSupplierRequest } from '../../core/modules/laboratorio/domain/supplier.model';
 import { SupplierModal } from '../../components/SupplierModal';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
@@ -66,9 +66,7 @@ const RefreshIcon = () => (
 );
 
 export const LabsSuppliers: React.FC<{ view?: string }> = ({ view }) => {
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { suppliers, loading, error, fetchSuppliers, createSupplier, updateSupplier, deleteSupplier } = useSuppliers();
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [modalOpen, setModalOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
@@ -77,32 +75,11 @@ export const LabsSuppliers: React.FC<{ view?: string }> = ({ view }) => {
   const [deletingSupplier, setDeletingSupplier] = useState<Supplier | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const fetchSuppliers = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await getSuppliersUseCase.execute();
-      setSuppliers(data);
-    } catch (err) {
-      console.error('Failed to fetch suppliers:', err);
-      setError('Error al cargar proveedores. Usando datos de ejemplo.');
-      // Fallback to mock data for now
-      setSuppliers([
-        { id: '1023', name: 'Envases Globales S.A.', phone: '+52 55 1234 5678', city: 'Ciudad de México', created_at: '', updated_at: '' },
-        { id: '1024', name: 'Productores Orgánicos del Sur', phone: '+52 951 987 6543', city: 'Oaxaca', created_at: '', updated_at: '' },
-        { id: '1025', name: 'Etiquetas y Papel', phone: '+52 33 5555 4444', city: 'Guadalajara', created_at: '', updated_at: '' },
-        { id: '1026', name: 'Distribuidora Botánica', phone: '+52 222 111 2222', city: 'Puebla', created_at: '', updated_at: '' },
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
+  React.useEffect(() => {
     if (view === 'suppliers') {
       fetchSuppliers();
     }
-  }, [view]);
+  }, [view, fetchSuppliers]);
 
   const toggleRow = (id: string) => {
     const newExpanded = new Set(expandedRows);
@@ -128,11 +105,14 @@ export const LabsSuppliers: React.FC<{ view?: string }> = ({ view }) => {
     setModalLoading(true);
     try {
       if (editingSupplier) {
-        await updateSupplierUseCase.execute(editingSupplier.id, data);
+        await updateSupplier(editingSupplier.id, data);
       } else {
-        await createSupplierUseCase.execute(data as CreateSupplierRequest);
+        await createSupplier(data as CreateSupplierRequest);
       }
       await fetchSuppliers();
+      // Clean form after successful submission
+      setModalOpen(false);
+      setEditingSupplier(null);
     } catch (err) {
       console.error('Failed to save supplier:', err);
       throw err;
@@ -150,7 +130,7 @@ export const LabsSuppliers: React.FC<{ view?: string }> = ({ view }) => {
     if (!deletingSupplier) return;
     setDeleteLoading(true);
     try {
-      await deleteSupplierUseCase.execute(deletingSupplier.id);
+      await deleteSupplier(deletingSupplier.id);
       await fetchSuppliers();
       setDeleteDialogOpen(false);
       setDeletingSupplier(null);

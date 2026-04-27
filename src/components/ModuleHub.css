@@ -1,0 +1,82 @@
+.module-hub {
+  padding: 2rem;
+}
+
+.module-hub-header {
+  margin-bottom: 2rem;
+}
+
+.module-hub-header h2 {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.module-hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.module-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.module-card.clickable {
+  cursor: pointer;
+}
+
+.module-card.clickable:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.module-card.coming-soon {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.module-card-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.module-card h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.module-card-status {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.module-card-status.active {
+  color: #10b981;
+}
+
+.module-card-status.coming-soon {
+  color: #6b7280;
+}
+
+/* iOS Responsive */
+@media (max-width: 768px) {
+  .module-hub {
+    padding: 1rem;
+  }
+
+  .module-hub-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .module-card {
+    padding: 1.25rem;
+  }
+}

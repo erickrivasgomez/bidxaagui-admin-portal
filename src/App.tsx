@@ -6,6 +6,8 @@ import Subscribers from './pages/Subscribers';
 import Editions from './pages/Editions';
 import EditionPreview from './pages/EditionPreview';
 import Campaigns from './pages/Campaigns';
+import AntroponomadasHub from './pages/AntroponomadasHub';
+import LabHub from './pages/LabHub';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicOnlyRoute from './components/PublicOnlyRoute';
 import { useAuthStore } from './store/authStore';
@@ -29,8 +31,7 @@ function App() {
           <Route path="/auth/verify" element={<VerifyMagicLink />} />
         </Route>
 
-
-        {/* Protected Routes */}
+        {/* Protected Routes - Main Dashboard */}
         <Route
           path="/dashboard"
           element={
@@ -39,6 +40,70 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* Protected Routes - Antroponomadas Module */}
+        <Route
+          path="/antroponomadas"
+          element={
+            <ProtectedRoute>
+              <AntroponomadasHub />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/antroponomadas/editions"
+          element={
+            <ProtectedRoute>
+              <Editions />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/antroponomadas/campaigns"
+          element={
+            <ProtectedRoute>
+              <Campaigns />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/antroponomadas/subscribers"
+          element={
+            <ProtectedRoute>
+              <Subscribers />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Protected Routes - Lab Module */}
+        <Route
+          path="/lab"
+          element={
+            <ProtectedRoute>
+              <LabHub />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/lab/proveedores"
+          element={
+            <ProtectedRoute>
+              <LabsIndex />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Protected Preview Route */}
+        <Route
+          path="/editions/:id/preview"
+          element={
+            <ProtectedRoute>
+              <EditionPreview isPublic={false} />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Legacy Routes - For backward compatibility */}
         <Route
           path="/subscribers"
           element={
@@ -52,15 +117,6 @@ function App() {
           element={
             <ProtectedRoute>
               <Editions />
-            </ProtectedRoute>
-          }
-        />
-        {/* Protected Preview Route */}
-        <Route
-          path="/editions/:id/preview"
-          element={
-            <ProtectedRoute>
-              <EditionPreview isPublic={false} />
             </ProtectedRoute>
           }
         />

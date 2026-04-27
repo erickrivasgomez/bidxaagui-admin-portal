@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import AdminHeader from '../components/AdminHeader';
-import { getCampaignsUseCase, createCampaignUseCase, updateCampaignUseCase, deleteCampaignUseCase, sendCampaignUseCase, sendTestCampaignUseCase, getSubscribersStatsUseCase } from '../core/modules/antroponomadas/infrastructure/antroponomadas.dependencies';
-import type { Campaign } from '../core/modules/antroponomadas/domain/campaign.model';
+import React, { useState } from 'react';
+import { useCampaigns } from '../core/modules/antroponomadas/application/useCampaigns';
+import { getSubscribersStatsUseCase } from '../core/modules/antroponomadas/infrastructure/antroponomadas.dependencies';
 import { NEWSLETTER_TEMPLATE } from '../templates/newsletter';
+import type { Campaign } from '../core/modules/antroponomadas/domain/campaign.model';
 import './Campaigns.css';
 
 const Campaigns: React.FC = () => {
-    const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const { campaigns, loading, createCampaign, updateCampaign, deleteCampaign, sendCampaign, sendTestCampaign } = useCampaigns();
+    
+    const [recipientCount, setRecipientCount] = useState(0);
     const [view, setView] = useState<'list' | 'edit' | 'create'>('list');
     const [formData, setFormData] = useState({
         id: '',
@@ -15,25 +16,6 @@ const Campaigns: React.FC = () => {
         preview_text: '',
         content: ''
     });
-    const [recipientCount, setRecipientCount] = useState(0);
-
-    useEffect(() => {
-        fetchCampaigns();
-        fetchSubscriberCount();
-    }, []);
-
-    const fetchCampaigns = async () => {
-        setIsLoading(true);
-        try {
-            const data = await getCampaignsUseCase.execute();
-            setCampaigns(data || []);
-        } catch (error) {
-            console.error('Error fetching campaigns:', error);
-            // Don't alert on initial load error to avoid annoyance if purely auth related (handled by interceptor)
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     const fetchSubscriberCount = async () => {
         try {
@@ -41,9 +23,13 @@ const Campaigns: React.FC = () => {
             setRecipientCount(stats.total || 0);
         } catch (error) {
             console.error('Error fetching stats:', error);
-            setRecipientCount(0); // Safer fallback
+            setRecipientCount(0);
         }
     };
+
+    React.useEffect(() => {
+        fetchSubscriberCount();
+    }, []);
 
     const handleCreate = () => {
         setFormData({
@@ -70,13 +56,12 @@ const Campaigns: React.FC = () => {
     };
 
     const handleDelete = async (id: string) => {
+        // TODO: Replace with full-screen confirmation screen per iOS guidelines
         if (!window.confirm('¿Estás seguro de eliminar esta campaña?')) return;
         try {
-            await deleteCampaignUseCase.execute(id);
-            await fetchCampaigns();
+            await deleteCampaign(id);
         } catch (error) {
             console.error('Error deleting campaign:', error);
-            alert('Error deleting campaign');
         }
     };
 
@@ -95,20 +80,21 @@ const Campaigns: React.FC = () => {
 
         try {
             if (view === 'create') {
-                await createCampaignUseCase.execute({
+                await createCampaign({
                     subject: formData.subject,
                     preview_text: formData.preview_text,
                     content: formData.content
                 });
             } else {
-                await updateCampaignUseCase.execute(formData.id, {
+                await updateCampaign(formData.id, {
                     subject: formData.subject,
                     preview_text: formData.preview_text,
                     content: formData.content
                 });
             }
+            // Clean form after successful submission
+            setFormData({ id: '', subject: '', preview_text: '', content: '' });
             setView('list');
-            fetchCampaigns();
         } catch (error) {
             console.error('Error saving campaign:', error);
             alert('Error guardando la campaña');
@@ -121,10 +107,9 @@ const Campaigns: React.FC = () => {
 
         try {
             const apiId = id || formData.id;
-            await sendCampaignUseCase.execute(apiId);
+            await sendCampaign(apiId);
             alert(`Campaña enviada y procesada correctamente.`);
             if (view !== 'list') setView('list');
-            fetchCampaigns();
         } catch (error) {
             console.error('Error sending campaign:', error);
             const msg = error instanceof Error ? error.message : 'Error desconocido';
@@ -140,7 +125,7 @@ const Campaigns: React.FC = () => {
 
         try {
             const apiId = id || formData.id;
-            await sendTestCampaignUseCase.execute(apiId, testEmails);
+            await sendTestCampaign(apiId, testEmails);
             alert(`Prueba enviada correctamente a: ${testEmails.join(', ')}`);
         } catch (error) {
             console.error('Error sending test:', error);
@@ -151,8 +136,6 @@ const Campaigns: React.FC = () => {
 
     return (
         <div className="admin-page">
-            <AdminHeader title="Campañas de Email" />
-
             <div className="campaigns-container">
                 {view === 'list' ? (
                     <>
@@ -162,8 +145,8 @@ const Campaigns: React.FC = () => {
                             </button>
                         </div>
 
-                        {isLoading ? (
-                            <p>Cargando campañas...</p>
+                        {loading ? (
+                            <div className="skeleton-loader">Cargando campañas...</div>
                         ) : (
                             <div className="table-responsive">
                                 <table className="admin-table">

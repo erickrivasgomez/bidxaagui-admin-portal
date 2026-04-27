@@ -1,31 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { getSubscribersUseCase, getSubscribersStatsUseCase, deleteSubscriberUseCase, exportSubscribersCsvUseCase, createSubscriberUseCase } from '../core/modules/antroponomadas/infrastructure/antroponomadas.dependencies';
-import type { Subscriber } from '../core/modules/antroponomadas/domain/subscriber.model';
-import AdminHeader from '../components/AdminHeader';
+import { useSubscribers } from '../core/modules/antroponomadas/application/useSubscribers';
 import './Subscribers.css';
 
 const Subscribers: React.FC = () => {
-    const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+    const { subscribers, loading, error, stats, pagination, fetchSubscribers, fetchStats, deleteSubscriber, exportCsv, createSubscriber } = useSubscribers();
 
     // Pagination state
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(25);
-    const [total, setTotal] = useState(0);
-    const [totalPages, setTotalPages] = useState(0);
 
     // Search and sort state
     const [search, setSearch] = useState('');
     const [sortBy, setSortBy] = useState('name');
     const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
 
-    // Stats state
-    const [stats, setStats] = useState({
-        total: 0,
-        thisMonth: 0,
-        growthRate: 0,
-    });
+    const total = pagination.total;
+    const totalPages = pagination.totalPages;
 
     // Modal & Import State
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -55,11 +45,12 @@ const Subscribers: React.FC = () => {
                     try {
                         const json = JSON.parse(text);
                         const arr = Array.isArray(json) ? json : [json];
-                        parsed = arr.map((item: any) => ({
-                            email: item.email || item.Email || (typeof item === 'string' ? item : ''),
-                            name: item.name || item.Name || undefined
-                        })).filter(x => x.email && x.email.includes('@'));
-                    } catch (e) {
+                        parsed = arr.map((item: { email?: string; Email?: string; name?: string; Name?: string } | string) => {
+                            const email = typeof item === 'string' ? item : (item.email || item.Email || '');
+                            const name = typeof item === 'string' ? undefined : (item.name || item.Name || undefined);
+                            return { email, name };
+                        }).filter(x => x.email && x.email.includes('@'));
+                    } catch {
                         // Not valid JSON, fall through
                     }
                 }
@@ -71,17 +62,10 @@ const Subscribers: React.FC = () => {
                         line = line.trim();
                         if (!line) return null;
 
-                        // Check for common separators: comma, tab, pipe, or just space
-                        // But ensure we don't split names incorrectly.
-                        // Strategy: Look for the email part.
-
-                        // Simple regex for email extraction
                         const emailMatch = line.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
                         if (emailMatch) {
                             const email = emailMatch[0];
-                            // The rest is potentially the name
                             let name = line.replace(email, '').replace(/[,|;]/g, '').trim();
-                            // Cleanup quotes
                             name = name.replace(/^["']|["']$/g, '');
                             return { email, name: name || undefined };
                         }
@@ -89,7 +73,6 @@ const Subscribers: React.FC = () => {
                     }).filter((x): x is { email: string; name: string | undefined } => x !== null);
                 }
 
-                // Remove duplicates in preview
                 const unique = new Map();
                 parsed.forEach(p => unique.set(p.email, p));
                 setBulkPreview(Array.from(unique.values()));
@@ -99,7 +82,7 @@ const Subscribers: React.FC = () => {
             } finally {
                 setIsParsing(false);
             }
-        }, 500); // Debounce
+        }, 500);
 
         return () => clearTimeout(timer);
     }, [bulkText, importMode]);
@@ -114,15 +97,10 @@ const Subscribers: React.FC = () => {
 
             if (usersToAdd.length === 0) return;
 
-            // In a real optimized backend we would have a batch endpoint.
-            // Here we will loop. It's fine for small batches (<50).
-            // For 2026 UX, we show progress.
-
             let successCount = 0;
             for (const user of usersToAdd) {
                 try {
-                    // Use the public endpoint for now as it does the job
-                    await createSubscriberUseCase.execute(user.email, user.name);
+                    await createSubscriber(user.email, user.name);
                     successCount++;
                 } catch (e) {
                     console.error(`Failed to add ${user.email} `, e);
@@ -131,79 +109,43 @@ const Subscribers: React.FC = () => {
 
             if (successCount > 0) {
                 alert(`✅ Se registraron ${successCount} suscriptores correctamente.`);
+                // Clean form after successful submission
                 setIsModalOpen(false);
                 setSingleEmail('');
                 setSingleName('');
                 setBulkText('');
-                fetchSubscribers();
-                fetchStats();
+                setBulkPreview([]);
+                await fetchSubscribers({ page, limit, search, sortBy, sortOrder });
+                await fetchStats();
             } else {
                 alert('❌ No se pudo registrar a los suscriptores. Verifica que no estén duplicados.');
             }
 
-        } catch (err) {
+        } catch {
             alert('Error al procesar la solicitud.');
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    // Fetch subscribers
-    const fetchSubscribers = async () => {
-        try {
-            setLoading(true);
-            setError('');
-            const response = await getSubscribersUseCase.execute({
-                page,
-                limit,
-                search,
-                sortBy,
-                sortOrder,
-            });
-
-            setSubscribers(response.subscribers);
-            setTotal(response.pagination.total);
-            setTotalPages(response.pagination.totalPages);
-        } catch (err: any) {
-            setError(err.response?.data?.error || 'Error loading subscribers');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Fetch stats
-    const fetchStats = async () => {
-        try {
-            const stats = await getSubscribersStatsUseCase.execute();
-            setStats({
-                total: stats.total,
-                thisMonth: stats.thisMonth,
-                growthRate: stats.growthRate,
-            });
-        } catch (err) {
-            console.error('Error loading stats:', err);
-        }
-    };
-
     // Delete subscriber
     const handleDelete = async (id: string, email: string) => {
+        // TODO: Replace with full-screen confirmation screen per iOS guidelines
         if (!confirm(`¿Eliminar suscriptor ${email}?`)) {
             return;
         }
 
         try {
-            await deleteSubscriberUseCase.execute(id);
-            fetchSubscribers();
-            fetchStats();
-        } catch (err: any) {
-            alert(err.response?.data?.error || 'Error al eliminar');
+            await deleteSubscriber(id);
+        } catch (err: unknown) {
+            alert((err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Error al eliminar');
         }
     };
 
     // Export to CSV
     const handleExport = async () => {
         try {
-            const blob = await exportSubscribersCsvUseCase.execute();
+            const blob = await exportCsv();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -212,7 +154,7 @@ const Subscribers: React.FC = () => {
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
-        } catch (err: any) {
+        } catch {
             alert('Error al exportar CSV');
         }
     };
@@ -220,8 +162,7 @@ const Subscribers: React.FC = () => {
     // Handle search with debounce
     useEffect(() => {
         const timeoutId = setTimeout(() => {
-            setPage(1); // Reset to first page on search
-            fetchSubscribers();
+            setPage(1);
         }, 500);
 
         return () => clearTimeout(timeoutId);
@@ -229,13 +170,13 @@ const Subscribers: React.FC = () => {
 
     // Fetch subscribers when page, limit, or sort changes
     useEffect(() => {
-        fetchSubscribers();
-    }, [page, limit, sortBy, sortOrder]);
+        fetchSubscribers({ page, limit, search, sortBy, sortOrder });
+    }, [page, limit, sortBy, sortOrder, search, fetchSubscribers]);
 
     // Fetch stats on mount
     useEffect(() => {
         fetchStats();
-    }, []);
+    }, [fetchStats]);
 
     // Format date
     const formatDate = (dateString: string) => {
@@ -249,8 +190,6 @@ const Subscribers: React.FC = () => {
 
     return (
         <div className="subscribers-page">
-            <AdminHeader />
-
             <div className="subscribers-container">
                 {/* Page Title */}
                 {/* Page Title & Stats */}
