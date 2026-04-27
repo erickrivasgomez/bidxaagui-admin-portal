@@ -32,7 +32,7 @@ export const LabsIndex = () => {
       case 'inventory': return <LabsInventory view={currentView} />;
       case 'sales': return <LabsSales view={currentView} />;
       case 'finance': return <LabsFinance view={currentView} />;
-      case 'suppliers': return <LabsSuppliers view={currentView} />;
+      case 'suppliers': return <LabsSuppliers />;
       case 'reports': return <LabsReports view={currentView} />;
       default: return <LabsDashboard view={currentView} />;
     }

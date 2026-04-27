@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSubscribers } from '../core/modules/antroponomadas/application/useSubscribers';
+import { AppCanvas } from '../components/AppCanvas';
+import { AppInspector } from '../components/AppInspector';
 import './Subscribers.css';
 
 const Subscribers: React.FC = () => {
@@ -17,8 +19,8 @@ const Subscribers: React.FC = () => {
     const total = pagination.total;
     const totalPages = pagination.totalPages;
 
-    // Modal & Import State
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    // Inspector & Import State
+    const [isInspectorOpen, setIsInspectorOpen] = useState(false);
     const [importMode, setImportMode] = useState<'single' | 'bulk'>('single');
     const [singleEmail, setSingleEmail] = useState('');
     const [singleName, setSingleName] = useState('');
@@ -110,7 +112,7 @@ const Subscribers: React.FC = () => {
             if (successCount > 0) {
                 alert(`✅ Se registraron ${successCount} suscriptores correctamente.`);
                 // Clean form after successful submission
-                setIsModalOpen(false);
+                setIsInspectorOpen(false);
                 setSingleEmail('');
                 setSingleName('');
                 setBulkText('');
@@ -130,7 +132,6 @@ const Subscribers: React.FC = () => {
 
     // Delete subscriber
     const handleDelete = async (id: string, email: string) => {
-        // TODO: Replace with full-screen confirmation screen per iOS guidelines
         if (!confirm(`¿Eliminar suscriptor ${email}?`)) {
             return;
         }
@@ -171,12 +172,12 @@ const Subscribers: React.FC = () => {
     // Fetch subscribers when page, limit, or sort changes
     useEffect(() => {
         fetchSubscribers({ page, limit, search, sortBy, sortOrder });
-    }, [page, limit, sortBy, sortOrder, search, fetchSubscribers]);
+    }, [page, limit, sortBy, sortOrder, search]);
 
     // Fetch stats on mount
     useEffect(() => {
         fetchStats();
-    }, [fetchStats]);
+    }, []);
 
     // Format date
     const formatDate = (dateString: string) => {
@@ -189,49 +190,40 @@ const Subscribers: React.FC = () => {
     };
 
     return (
-        <div className="subscribers-page">
-            <div className="subscribers-container">
-                {/* Page Title */}
-                {/* Page Title & Stats */}
-                <div className="page-header">
-                    <div className="header-left-group">
-                        <div className="title-group">
-                            <h2>Suscriptores</h2>
-                            <p className="subtitle">Gestión de audiencia</p>
+        <>
+            <AppCanvas
+                title="Suscriptores"
+                header={
+                    <div className="canvas-stats-row">
+                        <div className="stat-item">
+                            <span className="stat-value">{stats.total}</span>
+                            <span className="stat-label">Total</span>
                         </div>
-
-                        {/* Compact Stats Row */}
-                        <div className="stats-compact-row">
-                            <div className="stat-compact-item">
-                                <span className="sc-value">{stats.total}</span>
-                                <span className="sc-label">Total</span>
-                            </div>
-                            <div className="stat-divider"></div>
-                            <div className="stat-compact-item">
-                                <span className="sc-value">+{stats.thisMonth}</span>
-                                <span className="sc-label">Mes</span>
-                            </div>
-                            <div className="stat-divider"></div>
-                            <div className="stat-compact-item">
-                                <span className={`sc - value ${stats.growthRate >= 0 ? 'text-success' : 'text-danger'} `}>
-                                    {stats.growthRate.toFixed(1)}%
-                                </span>
-                                <span className="sc-label">Crecimiento</span>
-                            </div>
+                        <div className="stat-divider" />
+                        <div className="stat-item">
+                            <span className="stat-value">+{stats.thisMonth}</span>
+                            <span className="stat-label">Mes</span>
+                        </div>
+                        <div className="stat-divider" />
+                        <div className="stat-item">
+                            <span className={`stat-value ${stats.growthRate >= 0 ? 'text-success' : 'text-danger'}`}>
+                                {stats.growthRate.toFixed(1)}%
+                            </span>
+                            <span className="stat-label">Crecimiento</span>
                         </div>
                     </div>
-
-                    <div className="header-buttons">
-                        <button onClick={() => setIsModalOpen(true)} className="btn-primary-ios">
-                            <span className="icon">+</span> Nuevo
+                }
+                actions={
+                    <>
+                        <button onClick={handleExport} className="btn-secondary" style={{ borderRadius: '12px', padding: '10px 20px', fontWeight: 600 }}>
+                            ↓ CSV
                         </button>
-                        <button onClick={handleExport} className="btn-secondary-ios">
-                            <span className="icon">↓</span> CSV
+                        <button onClick={() => setIsInspectorOpen(true)} className="btn-primary" style={{ borderRadius: '12px', padding: '10px 20px', fontWeight: 600 }}>
+                            + Nuevo
                         </button>
-                    </div>
-                </div>
-
-                {/* Search and Filters */}
+                    </>
+                }
+            >
                 <div className="table-controls">
                     <input
                         type="text"
@@ -255,85 +247,79 @@ const Subscribers: React.FC = () => {
                     </select>
                 </div>
 
-                {/* Error Message */}
                 {error && (
                     <div className="error-message">
                         ❌ {error}
                     </div>
                 )}
 
-                {/* Loading State */}
                 {loading ? (
-                    <div className="loading-state">
-                        <div className="spinner"></div>
-                        <p>Cargando suscriptores...</p>
+                    <div className="skeleton-table">
+                        <div className="skeleton-row" />
+                        <div className="skeleton-row" />
+                        <div className="skeleton-row" />
                     </div>
                 ) : subscribers.length === 0 ? (
-                    /* Empty State */
                     <div className="empty-state">
                         <div className="empty-icon">📭</div>
                         <h3>No hay suscriptores</h3>
                         <p>Los suscriptores aparecerán aquí cuando se registren.</p>
                     </div>
                 ) : (
-                    /* Subscribers Table */
                     <>
-                        <div className="table-container">
-                            <table className="subscribers-table">
-                                <thead>
-                                    <tr>
-                                        <th
-                                            onClick={() => {
-                                                setSortBy('name');
-                                                setSortOrder(sortOrder === 'ASC' ? 'DESC' : 'ASC');
-                                            }}
-                                            className="sortable"
-                                        >
-                                            Nombre {sortBy === 'name' && (sortOrder === 'ASC' ? '↑' : '↓')}
-                                        </th>
-                                        <th
-                                            onClick={() => {
-                                                setSortBy('email');
-                                                setSortOrder(sortOrder === 'ASC' ? 'DESC' : 'ASC');
-                                            }}
-                                            className="sortable"
-                                        >
-                                            Email {sortBy === 'email' && (sortOrder === 'ASC' ? '↑' : '↓')}
-                                        </th>
-                                        <th
-                                            onClick={() => {
-                                                setSortBy('subscribed_at');
-                                                setSortOrder(sortOrder === 'ASC' ? 'DESC' : 'ASC');
-                                            }}
-                                            className="sortable"
-                                        >
-                                            Fecha {sortBy === 'subscribed_at' && (sortOrder === 'ASC' ? '↑' : '↓')}
-                                        </th>
-                                        <th>Acciones</th>
+                        <table className="modern-table">
+                            <thead>
+                                <tr>
+                                    <th
+                                        onClick={() => {
+                                            setSortBy('name');
+                                            setSortOrder(sortOrder === 'ASC' ? 'DESC' : 'ASC');
+                                        }}
+                                        className="sortable"
+                                    >
+                                        Nombre {sortBy === 'name' && (sortOrder === 'ASC' ? '↑' : '↓')}
+                                    </th>
+                                    <th
+                                        onClick={() => {
+                                            setSortBy('email');
+                                            setSortOrder(sortOrder === 'ASC' ? 'DESC' : 'ASC');
+                                        }}
+                                        className="sortable"
+                                    >
+                                        Email {sortBy === 'email' && (sortOrder === 'ASC' ? '↑' : '↓')}
+                                    </th>
+                                    <th
+                                        onClick={() => {
+                                            setSortBy('subscribed_at');
+                                            setSortOrder(sortOrder === 'ASC' ? 'DESC' : 'ASC');
+                                        }}
+                                        className="sortable"
+                                    >
+                                        Fecha {sortBy === 'subscribed_at' && (sortOrder === 'ASC' ? '↑' : '↓')}
+                                    </th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {subscribers.map((sub) => (
+                                    <tr key={sub.id}>
+                                        <td style={{ fontWeight: 500 }}>{sub.name || '-'}</td>
+                                        <td className="email-cell">{sub.email}</td>
+                                        <td>{formatDate(sub.subscribed_at)}</td>
+                                        <td>
+                                            <button
+                                                onClick={() => handleDelete(sub.id, sub.email)}
+                                                className="btn-action-danger"
+                                                title="Eliminar suscriptor"
+                                            >
+                                                🗑️
+                                            </button>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    {subscribers.map((sub) => (
-                                        <tr key={sub.id}>
-                                            <td style={{ fontWeight: 500 }}>{sub.name || '-'}</td>
-                                            <td className="email-cell">{sub.email}</td>
-                                            <td>{formatDate(sub.subscribed_at)}</td>
-                                            <td>
-                                                <button
-                                                    onClick={() => handleDelete(sub.id, sub.email)}
-                                                    className="btn-delete"
-                                                    title="Eliminar suscriptor"
-                                                >
-                                                    🗑️
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                ))}
+                            </tbody>
+                        </table>
 
-                        {/* Pagination */}
                         <div className="pagination">
                             <div className="pagination-info">
                                 Mostrando {Math.min((page - 1) * limit + 1, total)} - {Math.min(page * limit, total)} de {total}
@@ -360,111 +346,105 @@ const Subscribers: React.FC = () => {
                         </div>
                     </>
                 )}
-            </div>
+            </AppCanvas>
 
-            {/* Modal - iOS Sheet Style */}
-            {isModalOpen && (
-                <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h3>Registrar Suscriptores</h3>
-                            <button className="close-btn" onClick={() => setIsModalOpen(false)}>×</button>
+            <AppInspector
+                isOpen={isInspectorOpen}
+                onClose={() => setIsInspectorOpen(false)}
+                title="Registrar Suscriptores"
+                footer={
+                    <>
+                        <button className="btn-secondary" onClick={() => setIsInspectorOpen(false)}>
+                            Cancelar
+                        </button>
+                        <button
+                            className="btn-primary"
+                            onClick={handleAddSubscribers}
+                            disabled={isSubmitting || (importMode === 'single' ? !singleEmail : bulkPreview.length === 0)}
+                        >
+                            {isSubmitting ? 'Registrando...' : `Registrar ${importMode === 'bulk' && bulkPreview.length > 0 ? `(${bulkPreview.length})` : ''}`}
+                        </button>
+                    </>
+                }
+            >
+                <div className="inspector-tabs">
+                    <button
+                        className={`tab-btn ${importMode === 'single' ? 'active' : ''}`}
+                        onClick={() => setImportMode('single')}
+                    >
+                        Individual
+                    </button>
+                    <button
+                        className={`tab-btn ${importMode === 'bulk' ? 'active' : ''}`}
+                        onClick={() => setImportMode('bulk')}
+                    >
+                        Importación Masiva
+                    </button>
+                </div>
+
+                {importMode === 'single' ? (
+                    <div className="inspector-form">
+                        <div className="form-group">
+                            <label>Correo Electrónico</label>
+                            <input
+                                type="email"
+                                value={singleEmail}
+                                onChange={e => setSingleEmail(e.target.value)}
+                                placeholder="ejemplo@bidxaagui.com"
+                                className="form-input"
+                            />
                         </div>
-
-                        <div className="tabs-ios">
-                            <button
-                                className={`tab - btn ${importMode === 'single' ? 'active' : ''} `}
-                                onClick={() => setImportMode('single')}
-                            >
-                                Individual
-                            </button>
-                            <button
-                                className={`tab - btn ${importMode === 'bulk' ? 'active' : ''} `}
-                                onClick={() => setImportMode('bulk')}
-                            >
-                                Importación Masiva
-                            </button>
-                        </div>
-
-                        <div className="modal-body">
-                            {importMode === 'single' ? (
-                                <div className="form-stack">
-                                    <div className="input-group">
-                                        <label>Correo Electrónico</label>
-                                        <input
-                                            type="email"
-                                            value={singleEmail}
-                                            onChange={e => setSingleEmail(e.target.value)}
-                                            placeholder="ejemplo@bidxaagui.com"
-                                            className="input-ios"
-                                        />
-                                    </div>
-                                    <div className="input-group">
-                                        <label>Nombre (Opcional)</label>
-                                        <input
-                                            type="text"
-                                            value={singleName}
-                                            onChange={e => setSingleName(e.target.value)}
-                                            placeholder="Juan Pérez"
-                                            className="input-ios"
-                                        />
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="bulk-import-container">
-                                    <div className="smart-textarea-wrapper">
-                                        <textarea
-                                            value={bulkText}
-                                            onChange={e => setBulkText(e.target.value)}
-                                            placeholder={`Pega tu lista aquí.Detectamos automáticamente:
-- JSON: [{ "email": "...", "name": "..." }]
-    - CSV: email, nombre
-        - Texto: email nombre`}
-                                            className="textarea-ios"
-                                        />
-                                        <div className="smart-badge">✨ Smart Parse Activo</div>
-                                    </div>
-
-                                    {/* Preview Section */}
-                                    <div className="parse-preview">
-                                        <h4>Vista Previa ({bulkPreview.length} detectados)</h4>
-                                        {isParsing ? (
-                                            <div className="preview-loading">Analizando...</div>
-                                        ) : (
-                                            <ul>
-                                                {bulkPreview.slice(0, 5).map((u, i) => (
-                                                    <li key={i}>
-                                                        <span className="p-email">{u.email}</span>
-                                                        {u.name && <span className="p-name">{u.name}</span>}
-                                                    </li>
-                                                ))}
-                                                {bulkPreview.length > 5 && (
-                                                    <li className="more-indicator">...y {bulkPreview.length - 5} más</li>
-                                                )}
-                                                {bulkText && bulkPreview.length === 0 && (
-                                                    <li className="no-match">No se detectaron emails válidos</li>
-                                                )}
-                                            </ul>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="modal-footer">
-                            <button className="btn-cancel" onClick={() => setIsModalOpen(false)}>Cancelar</button>
-                            <button
-                                className="btn-confirm"
-                                onClick={handleAddSubscribers}
-                                disabled={isSubmitting || (importMode === 'single' ? !singleEmail : bulkPreview.length === 0)}
-                            >
-                                {isSubmitting ? 'Registrando...' : `Registrar ${importMode === 'bulk' && bulkPreview.length > 0 ? `(${bulkPreview.length})` : ''} `}
-                            </button>
+                        <div className="form-group">
+                            <label>Nombre (Opcional)</label>
+                            <input
+                                type="text"
+                                value={singleName}
+                                onChange={e => setSingleName(e.target.value)}
+                                placeholder="Juan Pérez"
+                                className="form-input"
+                            />
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                ) : (
+                    <div className="bulk-import-container">
+                        <div className="smart-textarea-wrapper">
+                            <textarea
+                                value={bulkText}
+                                onChange={e => setBulkText(e.target.value)}
+                                placeholder={`Pega tu lista aquí. Detectamos automáticamente:
+- JSON: [{ "email": "...", "name": "..." }]
+- CSV: email, nombre
+- Texto: email nombre`}
+                                className="textarea-ios"
+                            />
+                            <div className="smart-badge">✨ Smart Parse Activo</div>
+                        </div>
+
+                        <div className="parse-preview">
+                            <h4>Vista Previa ({bulkPreview.length} detectados)</h4>
+                            {isParsing ? (
+                                <div className="preview-loading">Analizando...</div>
+                            ) : (
+                                <ul>
+                                    {bulkPreview.slice(0, 5).map((u, i) => (
+                                        <li key={i}>
+                                            <span className="p-email">{u.email}</span>
+                                            {u.name && <span className="p-name">{u.name}</span>}
+                                        </li>
+                                    ))}
+                                    {bulkPreview.length > 5 && (
+                                        <li className="more-indicator">...y {bulkPreview.length - 5} más</li>
+                                    )}
+                                    {bulkText && bulkPreview.length === 0 && (
+                                        <li className="no-match">No se detectaron emails válidos</li>
+                                    )}
+                                </ul>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </AppInspector>
+        </>
     );
 };
 

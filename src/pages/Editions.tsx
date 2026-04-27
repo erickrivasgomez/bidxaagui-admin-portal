@@ -2,30 +2,34 @@ import React, { useState } from 'react';
 import { jsPDF } from 'jspdf';
 import { useEditions } from '../core/modules/antroponomadas/application/useEditions';
 import { getEditionPagesUseCase, uploadEditionPdfUseCase } from '../core/modules/antroponomadas/infrastructure/antroponomadas.dependencies';
-import { useReactRouterNavigation } from '../core/shared/infrastructure/react-router.adapter';
+import { AppCanvas } from '../components/AppCanvas';
+import { AppInspector } from '../components/AppInspector';
+import type { Edition } from '../core/modules/antroponomadas/domain/edition.model';
 import './Editions.css';
 
 const Editions: React.FC = () => {
-    const navigation = useReactRouterNavigation();
     const { editions, loading, fetchEditions, deleteEdition } = useEditions();
 
-    // Lightbox state
+    // Inspector state
+    const [isInspectorOpen, setIsInspectorOpen] = useState(false);
+    const [inspectorEdition, setInspectorEdition] = useState<Edition | null>(null);
     const [pages, setPages] = useState<Array<{ id: string; imagen_url: string; numero: number }>>([]);
-    const [isLightboxOpen, setIsLightboxOpen] = useState(false);
     const [lightboxIndex, setLightboxIndex] = useState(0);
-    const [viewingEditionTitle, setViewingEditionTitle] = useState('');
-
-    // Processing state for PDF generation
     const [isProcessing, setIsProcessing] = useState(false);
 
-    const handleViewPages = async (editionId: string, editionTitle: string) => {
+    React.useEffect(() => {
+        fetchEditions();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const handleViewPages = async (edition: Edition) => {
         try {
-            const data = await getEditionPagesUseCase.execute(editionId);
+            const data = await getEditionPagesUseCase.execute(edition.id);
             if (data && data.length > 0) {
                 setPages(data);
-                setViewingEditionTitle(editionTitle);
+                setInspectorEdition(edition);
                 setLightboxIndex(0);
-                setIsLightboxOpen(true);
+                setIsInspectorOpen(true);
             }
         } catch (error) {
             console.error('Error fetching pages:', error);
@@ -33,7 +37,6 @@ const Editions: React.FC = () => {
     };
 
     const handleDelete = async (id: string) => {
-        // TODO: Replace with full-screen confirmation screen per iOS guidelines
         if (!window.confirm('¿Estás seguro de eliminar esta edición? Esta acción es irreversible.')) return;
         try {
             await deleteEdition(id);
@@ -71,7 +74,6 @@ const Editions: React.FC = () => {
                 img.close();
             }
 
-            // Generate PDF
             if (blobs.length === 0) throw new Error('No hay imágenes procesadas.');
 
             const first = blobs[0];
@@ -124,123 +126,116 @@ const Editions: React.FC = () => {
     };
 
     return (
-        <div className="editions-page">
-            <div className="editions-container">
-                {/* Header */}
-                <div className="page-header">
-                    <div className="header-left-group">
-                        <div className="title-group">
-                            <h2>Ediciones</h2>
-                            <p className="subtitle">Gestión de ediciones y archivos PDF</p>
-                        </div>
+        <>
+            <AppCanvas
+                title="Ediciones"
+                actions={
+                    <button className="btn-primary" style={{ borderRadius: '12px', padding: '10px 20px', fontWeight: 600 }}>
+                        + Nueva Edición
+                    </button>
+                }
+            >
+                {loading ? (
+                    <div className="skeleton-table">
+                        <div className="skeleton-row" />
+                        <div className="skeleton-row" />
+                        <div className="skeleton-row" />
                     </div>
-                    <div className="header-buttons">
-                        <button onClick={() => navigation.navigate('/antroponomadas/editions/create')} className="btn-primary-ios">
-                            <span className="icon">+</span> Nueva Edición
-                        </button>
-                    </div>
-                </div>
-
-                {/* Table */}
-                <div className="table-container">
-                    {loading ? (
-                        <div className="skeleton-loader">Cargando...</div>
-                    ) : (
-                        <table className="editions-table">
-                            <thead>
+                ) : (
+                    <table className="modern-table">
+                        <thead>
+                            <tr>
+                                <th>Portada</th>
+                                <th>Título</th>
+                                <th>Fecha</th>
+                                <th>PDF</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {editions.length === 0 ? (
                                 <tr>
-                                    <th>Portada</th>
-                                    <th>Título</th>
-                                    <th>Fecha</th>
-                                    <th>Descarga PDF</th>
-                                    <th>Acciones</th>
+                                    <td colSpan={5} style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
+                                        No hay ediciones registradas.
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {editions.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={5} style={{ textAlign: 'center', padding: '2rem' }}>
-                                            No hay ediciones registradas.
+                            ) : (
+                                editions.map(edition => (
+                                    <tr key={edition.id}>
+                                        <td>
+                                            <div className="cover-thumbnail">
+                                                <span>IMG</span>
+                                            </div>
                                         </td>
-                                    </tr>
-                                ) : (
-                                    editions.map(edition => (
-                                        <tr key={edition.id}>
-                                            <td style={{ width: '60px' }}>
-                                                <div style={{
-                                                    width: '40px', height: '56px', background: '#eee',
-                                                    borderRadius: '4px', overflow: 'hidden'
-                                                }}>
-                                                    <span style={{ display: 'block', lineHeight: '56px', textAlign: 'center', fontSize: '10px' }}>IMG</span>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <button
-                                                    onClick={() => handleViewPages(edition.id, edition.titulo)}
-                                                    className="edition-title-btn"
-                                                    style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}
+                                        <td>
+                                            <button
+                                                onClick={() => handleViewPages(edition)}
+                                                className="title-link"
+                                            >
+                                                {edition.titulo}
+                                            </button>
+                                            <div className="subtitle-text">{edition.descripcion}</div>
+                                        </td>
+                                        <td>{new Date(edition.fecha || '').toLocaleDateString()}</td>
+                                        <td>
+                                            {edition.pdf_url ? (
+                                                <a
+                                                    href={edition.pdf_url.startsWith('http') ? edition.pdf_url : `https://bidxaagui.com/assets/documents/${edition.pdf_url.split('/').pop()}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="pdf-link"
                                                 >
-                                                    <span className="edition-title" style={{ color: 'var(--accent-rust)', textDecoration: 'underline' }}>{edition.titulo}</span>
+                                                    Ver PDF
+                                                </a>
+                                            ) : (
+                                                <span style={{ color: '#94a3b8', fontSize: '13px' }}>Sin PDF</span>
+                                            )}
+                                        </td>
+                                        <td>
+                                            <div className="action-buttons">
+                                                <button
+                                                    onClick={() => handleManualPDF(edition.id, edition.titulo)}
+                                                    className="btn-action-secondary"
+                                                    disabled={isProcessing}
+                                                    title="Generar PDF"
+                                                >
+                                                    {isProcessing ? '...' : '📄'}
                                                 </button>
-                                                <span className="edition-desc">{edition.descripcion}</span>
-                                            </td>
-                                            <td>{new Date(edition.fecha || '').toLocaleDateString()}</td>
-                                            <td>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                    {edition.pdf_url ? (
-                                                        <a
-                                                            href={edition.pdf_url.startsWith('http') ? edition.pdf_url : `https://bidxaagui.com/assets/documents/${edition.pdf_url.split('/').pop()}`}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            style={{ color: 'var(--accent-rust)', fontSize: '0.9rem', fontWeight: 600 }}
-                                                        >
-                                                            Ver PDF
-                                                        </a>
-                                                    ) : (
-                                                        <span style={{ color: '#888', fontSize: '0.85rem' }}>Default</span>
-                                                    )}
-                                                    <button
-                                                        onClick={() => handleManualPDF(edition.id, edition.titulo)}
-                                                        className="btn-mini"
-                                                        disabled={isProcessing}
-                                                    >
-                                                        {isProcessing ? '...' : 'Generar'}
-                                                    </button>
-                                                </div>
-                                            </td>
-                                            <td>
                                                 <button
                                                     onClick={() => window.open(`/editions/${edition.id}/preview`, '_blank')}
-                                                    className="btn-action"
-                                                    style={{ marginRight: '8px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}
+                                                    className="btn-action-secondary"
+                                                    title="Vista previa"
                                                 >
                                                     👁️
                                                 </button>
-                                                <button onClick={() => handleDelete(edition.id)} className="btn-delete" title="Eliminar">
+                                                <button
+                                                    onClick={() => handleDelete(edition.id)}
+                                                    className="btn-action-danger"
+                                                    title="Eliminar"
+                                                >
                                                     🗑️
                                                 </button>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    )}
-                </div>
-            </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                )}
+            </AppCanvas>
 
-            {/* Lightbox Modal */}
-            {isLightboxOpen && (
-                <div className="lightbox-overlay" onClick={() => setIsLightboxOpen(false)}>
-                    <div className="lightbox-content" onClick={e => e.stopPropagation()}>
-                        <div className="lightbox-header">
-                            <h3 className="lightbox-title">{viewingEditionTitle}</h3>
-                            <button onClick={() => setIsLightboxOpen(false)} className="close-btn-light">×</button>
-                        </div>
+            <AppInspector
+                isOpen={isInspectorOpen}
+                onClose={() => setIsInspectorOpen(false)}
+                title={inspectorEdition?.titulo || 'Edición'}
+            >
+                {pages.length > 0 && (
+                    <div className="inspector-lightbox">
                         <div className="lightbox-stage">
                             <button
                                 className="nav-btn prev"
-                                onClick={(e) => { e.stopPropagation(); setLightboxIndex(i => Math.max(0, i - 1)); }}
+                                onClick={() => setLightboxIndex(i => Math.max(0, i - 1))}
                                 disabled={lightboxIndex === 0}
                             >
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
@@ -250,12 +245,11 @@ const Editions: React.FC = () => {
                                     src={`${import.meta.env.VITE_API_URL || 'http://localhost:8787'}/api/images/${pages[lightboxIndex]?.imagen_url}`}
                                     alt={`Página ${pages[lightboxIndex]?.numero}`}
                                     className="main-image"
-                                    onError={(e) => { e.currentTarget.src = 'https://placehold.co/400x600?text=Error+Loading'; }}
                                 />
                             </div>
                             <button
                                 className="nav-btn next"
-                                onClick={(e) => { e.stopPropagation(); setLightboxIndex(i => Math.min(pages.length - 1, i + 1)); }}
+                                onClick={() => setLightboxIndex(i => Math.min(pages.length - 1, i + 1))}
                                 disabled={lightboxIndex === pages.length - 1}
                             >
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
@@ -265,26 +259,23 @@ const Editions: React.FC = () => {
                             Página {lightboxIndex + 1} de {pages.length}
                         </div>
                         <div className="thumbnails-strip">
-                            <div className="thumbnails-track">
-                                {pages.map((page, idx) => (
-                                    <div
-                                        key={page.id}
-                                        className={`thumb-item ${idx === lightboxIndex ? 'active' : ''}`}
-                                        onClick={(e) => { e.stopPropagation(); setLightboxIndex(idx); }}
-                                    >
-                                        <img
-                                            src={`${import.meta.env.VITE_API_URL || 'http://localhost:8787'}/api/images/${page.imagen_url}`}
-                                            loading="lazy"
-                                        />
-                                        <div className="thumb-num">{idx + 1}</div>
-                                    </div>
-                                ))}
-                            </div>
+                            {pages.map((page, idx) => (
+                                <div
+                                    key={page.id}
+                                    className={`thumb-item ${idx === lightboxIndex ? 'active' : ''}`}
+                                    onClick={() => setLightboxIndex(idx)}
+                                >
+                                    <img
+                                        src={`${import.meta.env.VITE_API_URL || 'http://localhost:8787'}/api/images/${page.imagen_url}`}
+                                        loading="lazy"
+                                    />
+                                </div>
+                            ))}
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )}
+            </AppInspector>
+        </>
     );
 };
 

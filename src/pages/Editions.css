@@ -438,3 +438,271 @@
         opacity: 1;
     }
 }
+
+/* Modern 3-Panel Layout Styles */
+.btn-primary {
+  background: #6366f1;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-primary:hover {
+  background: #4f46e5;
+}
+
+.modern-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.modern-table thead {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.modern-table th {
+  text-align: left;
+  padding: 12px 16px;
+  font-weight: 600;
+  color: #64748b;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.modern-table tbody tr {
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.15s ease;
+}
+
+.modern-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.modern-table td {
+  padding: 16px;
+  vertical-align: middle;
+}
+
+.cover-thumbnail {
+  width: 40px;
+  height: 56px;
+  background: #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.title-link {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  text-align: left;
+  transition: color 0.15s ease;
+}
+
+.title-link:hover {
+  color: #6366f1;
+}
+
+.subtitle-text {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.pdf-link {
+  color: #6366f1;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.pdf-link:hover {
+  text-decoration: underline;
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-action-secondary {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.15s ease;
+}
+
+.btn-action-secondary:hover {
+  background: #e2e8f0;
+}
+
+.btn-action-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-action-danger {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fef2f2;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.15s ease;
+}
+
+.btn-action-danger:hover {
+  background: #fee2e2;
+}
+
+.skeleton-table {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeleton-row {
+  height: 60px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 8px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.inspector-lightbox {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.inspector-lightbox .lightbox-stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  position: relative;
+  padding: 0;
+}
+
+.inspector-lightbox .nav-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: static;
+  transform: none;
+}
+
+.inspector-lightbox .nav-btn:hover:not(:disabled) {
+  background: #e2e8f0;
+}
+
+.inspector-lightbox .nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.inspector-lightbox .image-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-height: 500px;
+}
+
+.inspector-lightbox .main-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.inspector-lightbox .lightbox-info {
+  text-align: center;
+  padding: 12px;
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+  position: static;
+  transform: none;
+  background: none;
+}
+
+.inspector-lightbox .thumbnails-strip {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  overflow-x: auto;
+  border-top: 1px solid #e2e8f0;
+  height: auto;
+  background: none;
+  backdrop-filter: none;
+}
+
+.inspector-lightbox .thumb-item {
+  flex-shrink: 0;
+  width: 60px;
+  height: 84px;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.15s ease;
+  position: static;
+  opacity: 1;
+}
+
+.inspector-lightbox .thumb-item:hover {
+  border-color: #e2e8f0;
+}
+
+.inspector-lightbox .thumb-item.active {
+  border-color: #6366f1;
+}
+
+.inspector-lightbox .thumb-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
