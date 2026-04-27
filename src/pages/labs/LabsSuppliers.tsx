@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './LabsLayout.css';
-import { suppliersApi, type Supplier, type CreateSupplierRequest, type UpdateSupplierRequest } from '../../api/suppliers';
+import { getSuppliersUseCase, createSupplierUseCase, updateSupplierUseCase, deleteSupplierUseCase } from '../../core/modules/laboratorio/infrastructure/suppliers.dependencies';
+import type { Supplier, CreateSupplierRequest, UpdateSupplierRequest } from '../../core/modules/laboratorio/domain/supplier.model';
 import { SupplierModal } from '../../components/SupplierModal';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 
@@ -80,8 +81,8 @@ export const LabsSuppliers: React.FC<{ view?: string }> = ({ view }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await suppliersApi.list();
-      setSuppliers(response.data.data.data);
+      const data = await getSuppliersUseCase.execute();
+      setSuppliers(data);
     } catch (err) {
       console.error('Failed to fetch suppliers:', err);
       setError('Error al cargar proveedores. Usando datos de ejemplo.');
@@ -127,9 +128,9 @@ export const LabsSuppliers: React.FC<{ view?: string }> = ({ view }) => {
     setModalLoading(true);
     try {
       if (editingSupplier) {
-        await suppliersApi.update(editingSupplier.id, data);
+        await updateSupplierUseCase.execute(editingSupplier.id, data);
       } else {
-        await suppliersApi.create(data as CreateSupplierRequest);
+        await createSupplierUseCase.execute(data as CreateSupplierRequest);
       }
       await fetchSuppliers();
     } catch (err) {
@@ -149,7 +150,7 @@ export const LabsSuppliers: React.FC<{ view?: string }> = ({ view }) => {
     if (!deletingSupplier) return;
     setDeleteLoading(true);
     try {
-      await suppliersApi.delete(deletingSupplier.id);
+      await deleteSupplierUseCase.execute(deletingSupplier.id);
       await fetchSuppliers();
       setDeleteDialogOpen(false);
       setDeletingSupplier(null);

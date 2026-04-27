@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { suppliersApi, type Supplier, type CreateSupplierRequest, type UpdateSupplierRequest } from '../api/suppliers';
+import type { Supplier, CreateSupplierRequest, UpdateSupplierRequest } from '../core/modules/laboratorio/domain/supplier.model';
+import { httpClient } from '../core/shared/infrastructure/api.factory';
 import '../pages/labs/LabsLayout.css';
 
 interface SupplierModalProps {
@@ -50,7 +51,7 @@ export const SupplierModal: React.FC<SupplierModalProps> = ({ isOpen, onClose, o
   useEffect(() => {
     const fetchCities = async () => {
       try {
-        const response = await suppliersApi.getCities();
+        const response = await httpClient.get<any>('/api/admin/suppliers/cities');
         setCities(response.data.data.cities);
       } catch (error) {
         console.error('Failed to fetch cities:', error);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AdminHeader from '../components/AdminHeader';
-import { campaignsAPI, type Campaign, subscribersAPI } from '../services/api';
+import { getCampaignsUseCase, createCampaignUseCase, updateCampaignUseCase, deleteCampaignUseCase, sendCampaignUseCase, sendTestCampaignUseCase, getSubscribersStatsUseCase } from '../core/modules/antroponomadas/infrastructure/antroponomadas.dependencies';
+import type { Campaign } from '../core/modules/antroponomadas/domain/campaign.model';
 import { NEWSLETTER_TEMPLATE } from '../templates/newsletter';
 import './Campaigns.css';
 
@@ -24,7 +25,7 @@ const Campaigns: React.FC = () => {
     const fetchCampaigns = async () => {
         setIsLoading(true);
         try {
-            const data = await campaignsAPI.getAll();
+            const data = await getCampaignsUseCase.execute();
             setCampaigns(data || []);
         } catch (error) {
             console.error('Error fetching campaigns:', error);
@@ -36,8 +37,8 @@ const Campaigns: React.FC = () => {
 
     const fetchSubscriberCount = async () => {
         try {
-            const stats = await subscribersAPI.stats();
-            setRecipientCount(stats?.data?.total || 0);
+            const stats = await getSubscribersStatsUseCase.execute();
+            setRecipientCount(stats.total || 0);
         } catch (error) {
             console.error('Error fetching stats:', error);
             setRecipientCount(0); // Safer fallback
@@ -71,7 +72,7 @@ const Campaigns: React.FC = () => {
     const handleDelete = async (id: string) => {
         if (!window.confirm('¿Estás seguro de eliminar esta campaña?')) return;
         try {
-            await campaignsAPI.delete(id);
+            await deleteCampaignUseCase.execute(id);
             await fetchCampaigns();
         } catch (error) {
             console.error('Error deleting campaign:', error);
@@ -94,13 +95,13 @@ const Campaigns: React.FC = () => {
 
         try {
             if (view === 'create') {
-                await campaignsAPI.create({
+                await createCampaignUseCase.execute({
                     subject: formData.subject,
                     preview_text: formData.preview_text,
                     content: formData.content
                 });
             } else {
-                await campaignsAPI.update(formData.id, {
+                await updateCampaignUseCase.execute(formData.id, {
                     subject: formData.subject,
                     preview_text: formData.preview_text,
                     content: formData.content
@@ -120,8 +121,8 @@ const Campaigns: React.FC = () => {
 
         try {
             const apiId = id || formData.id;
-            const response = await campaignsAPI.send(apiId);
-            alert(`Campaña procesada.\n${response.message || 'Envíos completados.'}`);
+            await sendCampaignUseCase.execute(apiId);
+            alert(`Campaña enviada y procesada correctamente.`);
             if (view !== 'list') setView('list');
             fetchCampaigns();
         } catch (error) {
@@ -139,7 +140,7 @@ const Campaigns: React.FC = () => {
 
         try {
             const apiId = id || formData.id;
-            await campaignsAPI.sendTest(apiId, testEmails);
+            await sendTestCampaignUseCase.execute(apiId, testEmails);
             alert(`Prueba enviada correctamente a: ${testEmails.join(', ')}`);
         } catch (error) {
             console.error('Error sending test:', error);

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import HTMLFlipBook from 'react-pageflip';
-import { editionsAPI, type Edition } from '../services/api';
+import { getEditionsUseCase, getEditionPagesUseCase } from '../core/modules/antroponomadas/infrastructure/antroponomadas.dependencies';
+import type { Edition } from '../core/modules/antroponomadas/domain/edition.model';
 import './EditionPreview.css';
 
 interface EditionPreviewProps {
@@ -51,7 +52,7 @@ const EditionPreview: React.FC<EditionPreviewProps> = ({ isPublic = false }) => 
             if (!id) return;
             try {
                 setLoading(true);
-                const allEditions = await editionsAPI.getAll();
+                const allEditions = await getEditionsUseCase.execute();
                 const found = allEditions.find(e => e.id === id);
 
                 if (!found) {
@@ -60,7 +61,7 @@ const EditionPreview: React.FC<EditionPreviewProps> = ({ isPublic = false }) => 
                 }
                 setEdition(found);
 
-                const pagesData = await editionsAPI.getPages(id);
+                const pagesData = await getEditionPagesUseCase.execute(id);
                 setPages(pagesData);
 
             } catch (err) {

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { authAPI } from '../services/api';
+import { verifyMagicLinkUseCase } from '../core/shared/infrastructure/auth.dependencies';
+import { DomainError } from '../core/shared/domain/errors';
 import { useAuthStore } from '../store/authStore';
 import './VerifyMagicLink.css';
 
@@ -42,10 +43,10 @@ const VerifyMagicLink: React.FC = () => {
             hasVerified.current = true;
 
             try {
-                const response = await authAPI.verifyMagicLink(token);
+                const result = await verifyMagicLinkUseCase.execute(token);
 
                 // Store token and user in state
-                setToken(response.data.token, response.data.user);
+                setToken(result.token, result.user);
                 setStatus('success');
 
                 // Redirect to dashboard after short delay
@@ -60,18 +61,8 @@ const VerifyMagicLink: React.FC = () => {
 
                 setStatus('error');
 
-                const status = err.response?.status;
-                const message = err.response?.data?.message;
-
-                // If token is gone/expired but we successfully verified in a parallel request (race condition)
-                // we might want to check auth state again, but the check above covers it.
-
-                if (status === 404 || message?.includes('not found')) {
-                    setErrorMessage('El enlace no es válido o no existe.');
-                } else if (status === 410 || message?.includes('expired')) {
-                    setErrorMessage('El enlace ha expirado. Por favor solicita uno nuevo.');
-                } else if (message?.includes('already used')) {
-                    setErrorMessage('El enlace ya fue utilizado. Por favor solicita uno nuevo.');
+                if (err instanceof DomainError) {
+                    setErrorMessage(err.message);
                 } else {
                     setErrorMessage('Error al verificar el enlace. Por favor intenta de nuevo.');
                 }

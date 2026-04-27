@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { getPosProductsUseCase } from '../../core/modules/laboratorio/infrastructure/sales.dependencies';
+import type { Product } from '../../core/modules/laboratorio/domain/product.model';
 import './LabsLayout.css';
 
 // SVG Icons
@@ -40,20 +42,17 @@ const CreditCardIcon = () => (
   </svg>
 );
 
-interface POSItem {
-  id: string;
-  name: string;
-  price: number;
-}
 
-const posItems: POSItem[] = [
-  { id: '1', name: 'Pomada de Árnica 60g', price: 150.00 },
-  { id: '2', name: 'Microdosis Valeriana 30ml', price: 90.00 },
-  { id: '3', name: 'Tintura Madre Equinácea', price: 210.00 },
-  { id: '4', name: 'Té Relajante Mezcla Especial', price: 85.00 },
-];
 
 export const LabsSales: React.FC<{ view?: string }> = ({ view }) => {
+  const [posItems, setPosItems] = useState<Product[]>([]);
+
+  useEffect(() => {
+    if (view === 'sales') {
+      getPosProductsUseCase.execute().then(setPosItems).catch(console.error);
+    }
+  }, [view]);
+
   if (view !== 'sales') return null;
 
   return (

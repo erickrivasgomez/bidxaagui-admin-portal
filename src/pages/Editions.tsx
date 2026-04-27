@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import JSZip from 'jszip';
 import { jsPDF } from 'jspdf';
 import AdminHeader from '../components/AdminHeader';
-import { editionsAPI, type Edition } from '../services/api';
+import { getEditionsUseCase, createEditionUseCase, deleteEditionUseCase, uploadEditionPageUseCase, getEditionPagesUseCase, uploadEditionPdfUseCase } from '../core/modules/antroponomadas/infrastructure/antroponomadas.dependencies';
+import type { Edition } from '../core/modules/antroponomadas/domain/edition.model';
 import './Editions.css';
 
 const Editions: React.FC = () => {
@@ -37,7 +38,7 @@ const Editions: React.FC = () => {
     const fetchEditions = async () => {
         try {
             setLoading(true);
-            const data = await editionsAPI.getAll();
+            const data = await getEditionsUseCase.execute();
             setEditions(data);
         } catch (error) {
             console.error('Error fetching editions:', error);
@@ -48,7 +49,7 @@ const Editions: React.FC = () => {
 
     const handleViewPages = async (edition: Edition) => {
         try {
-            const data = await editionsAPI.getPages(edition.id);
+            const data = await getEditionPagesUseCase.execute(edition.id);
             if (data && data.length > 0) {
                 setPages(data);
                 setViewingEditionTitle(edition.titulo);
@@ -66,7 +67,7 @@ const Editions: React.FC = () => {
     const handleDelete = async (id: string) => {
         if (!window.confirm('¿Estás seguro de eliminar esta edición? Esta acción es irreversible.')) return;
         try {
-            await editionsAPI.delete(id);
+            await deleteEditionUseCase.execute(id);
             fetchEditions();
         } catch (error) {
             console.error('Error deleting edition:', error);
@@ -93,7 +94,7 @@ const Editions: React.FC = () => {
         try {
             // 1. Create Edition Metadata
             setStatusMessage('Creando edición...');
-            const edition = await editionsAPI.create({
+            const edition = await createEditionUseCase.execute({
                 titulo: title,
                 descripcion: description,
                 fecha: date // Assuming string format is accepted or YYYY-MM-DD
@@ -151,7 +152,7 @@ const Editions: React.FC = () => {
                         fd.append('isCover', isCover ? 'true' : 'false');
 
                         try {
-                            await editionsAPI.uploadPage(editionId, fd);
+                            await uploadEditionPageUseCase.execute(editionId, fd);
                             resolve();
                         } catch (e) {
                             reject(e);
@@ -231,7 +232,7 @@ const Editions: React.FC = () => {
             fd.append('file', pdfBlob, fileName);
             fd.append('fileName', fileName);
 
-            await editionsAPI.uploadPDF(editionId, fd);
+            await uploadEditionPdfUseCase.execute(editionId, fd);
 
             setStatusMessage('¡Todo listo! PDF pusheado a GitHub.');
 
@@ -256,7 +257,7 @@ const Editions: React.FC = () => {
             setGeneratingPdfId(edition.id);
             setIsProcessing(true);
             setStatusMessage('Descargando páginas actuales para generar PDF...');
-            const pagesData = await editionsAPI.getPages(edition.id);
+            const pagesData = await getEditionPagesUseCase.execute(edition.id);
 
             if (!pagesData || pagesData.length === 0) {
                 alert('No se puede generar PDF sin páginas.');

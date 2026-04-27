@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { subscribersAPI, authAPI, type Subscriber } from '../services/api';
+import { getSubscribersUseCase, getSubscribersStatsUseCase, deleteSubscriberUseCase, exportSubscribersCsvUseCase, createSubscriberUseCase } from '../core/modules/antroponomadas/infrastructure/antroponomadas.dependencies';
+import type { Subscriber } from '../core/modules/antroponomadas/domain/subscriber.model';
 import AdminHeader from '../components/AdminHeader';
 import './Subscribers.css';
 
@@ -121,7 +122,7 @@ const Subscribers: React.FC = () => {
             for (const user of usersToAdd) {
                 try {
                     // Use the public endpoint for now as it does the job
-                    await authAPI.subscribeNewsletter(user.email, user.name);
+                    await createSubscriberUseCase.execute(user.email, user.name);
                     successCount++;
                 } catch (e) {
                     console.error(`Failed to add ${user.email} `, e);
@@ -152,7 +153,7 @@ const Subscribers: React.FC = () => {
         try {
             setLoading(true);
             setError('');
-            const response = await subscribersAPI.getAll({
+            const response = await getSubscribersUseCase.execute({
                 page,
                 limit,
                 search,
@@ -160,9 +161,9 @@ const Subscribers: React.FC = () => {
                 sortOrder,
             });
 
-            setSubscribers(response.data.subscribers);
-            setTotal(response.data.pagination.total);
-            setTotalPages(response.data.pagination.totalPages);
+            setSubscribers(response.subscribers);
+            setTotal(response.pagination.total);
+            setTotalPages(response.pagination.totalPages);
         } catch (err: any) {
             setError(err.response?.data?.error || 'Error loading subscribers');
         } finally {
@@ -173,11 +174,11 @@ const Subscribers: React.FC = () => {
     // Fetch stats
     const fetchStats = async () => {
         try {
-            const response = await subscribersAPI.stats();
+            const stats = await getSubscribersStatsUseCase.execute();
             setStats({
-                total: response.data.total,
-                thisMonth: response.data.thisMonth,
-                growthRate: response.data.growthRate,
+                total: stats.total,
+                thisMonth: stats.thisMonth,
+                growthRate: stats.growthRate,
             });
         } catch (err) {
             console.error('Error loading stats:', err);
@@ -191,7 +192,7 @@ const Subscribers: React.FC = () => {
         }
 
         try {
-            await subscribersAPI.delete(id);
+            await deleteSubscriberUseCase.execute(id);
             fetchSubscribers();
             fetchStats();
         } catch (err: any) {
@@ -202,7 +203,7 @@ const Subscribers: React.FC = () => {
     // Export to CSV
     const handleExport = async () => {
         try {
-            const blob = await subscribersAPI.exportCSV();
+            const blob = await exportSubscribersCsvUseCase.execute();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;

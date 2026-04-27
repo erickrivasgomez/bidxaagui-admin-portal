@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { authAPI } from '../services/api';
+import { requestMagicLinkUseCase } from '../core/shared/infrastructure/auth.dependencies';
+import { DomainError } from '../core/shared/domain/errors';
 import { useAuthStore } from '../store/authStore';
 import './Login.css';
 
@@ -8,42 +9,21 @@ const Login: React.FC = () => {
     const [emailSent, setEmailSent] = useState(false);
     const { isLoading, error, setLoading, setError, clearError } = useAuthStore();
 
-    const validateEmail = (email: string): boolean => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-    };
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         clearError();
-
-        // Validation
-        if (!email.trim()) {
-            setError('Por favor ingresa tu correo electrónico');
-            return;
-        }
-
-        if (!validateEmail(email)) {
-            setError('Por favor ingresa un correo electrónico válido');
-            return;
-        }
-
         setLoading(true);
 
         try {
-            const response = await authAPI.requestMagicLink(email);
-
-            if (response.success) {
-                setEmailSent(true);
-                setLoading(false);
-            }
+            await requestMagicLinkUseCase.execute(email);
+            setEmailSent(true);
+            setLoading(false);
         } catch (err: any) {
-            const errorMessage = err.response?.data?.message ||
-                err.response?.status === 404
-                ? 'Correo no encontrado. Por favor contacta al administrador.'
-                : 'Error al solicitar el enlace. Por favor intenta de nuevo.';
-
-            setError(errorMessage);
+            if (err instanceof DomainError) {
+                setError(err.message);
+            } else {
+                setError('Error al solicitar el enlace. Por favor intenta de nuevo.');
+            }
         }
     };
 
