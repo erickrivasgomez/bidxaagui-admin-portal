@@ -2,10 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { UniversalLayout } from '../components/layout/UniversalLayout';
 import { Inspector } from '../components/layout/Inspector';
 import { ContentCard } from '../components/ui/ContentCard';
-import { DataStateWrapper, EmptyState, LoadingState } from '../components/ui/DataStates';
+import { DataStateWrapper } from '../components/ui/DataStates';
 import { useToast } from '../components/ui/Toast';
 import { useNavigation } from '../hooks/useNavigation';
-import { useTheme } from '../hooks/useTheme';
 import { useData } from '../hooks/useData';
 import './SubscribersNew.css';
 
@@ -18,13 +17,12 @@ interface Subscriber {
 
 const SubscribersNew: React.FC = () => {
   const { navigationItems } = useNavigation();
-  const { getButtonVariant } = useTheme();
   const toast = useToast();
   
   // Use our new custom hook
   const subscribersData = useData<Subscriber>({
     fetcher: {
-      findAll: async (filters, pagination, sorting) => {
+      findAll: async () => {
         // Mock implementation - replace with actual API call
         return [
           { id: '1', email: 'user1@example.com', name: 'Usuario Uno', created_at: '2024-01-01' },
@@ -156,7 +154,7 @@ const SubscribersNew: React.FC = () => {
       let successCount = 0;
       for (const user of usersToAdd) {
         try {
-          await create(user);
+          await create({ email: user.email, name: user.name || '', created_at: new Date().toISOString() });
           successCount++;
         } catch (e) {
           console.error(`Failed to add ${user.email} `, e);

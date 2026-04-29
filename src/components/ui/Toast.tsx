@@ -1,4 +1,4 @@
-import React, { useState, useEffect, createContext, useContext } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { useTheme } from '../../hooks/useTheme';
 import './Toast.css';
 

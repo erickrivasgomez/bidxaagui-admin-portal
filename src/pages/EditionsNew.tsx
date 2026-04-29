@@ -1,24 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { UniversalLayout } from '../components/layout/UniversalLayout';
 import { Inspector } from '../components/layout/Inspector';
 import { ContentCard } from '../components/ui/ContentCard';
-import { DataStateWrapper, EmptyState, LoadingState } from '../components/ui/DataStates';
+import { DataStateWrapper } from '../components/ui/DataStates';
 import { useToast } from '../components/ui/Toast';
 import { useNavigation } from '../hooks/useNavigation';
-import { useTheme } from '../hooks/useTheme';
 import { useData } from '../hooks/useData';
 import type { Edition, EditionPage } from '../core/modules/antroponomadas/domain/edition.model';
 import './EditionsNew.css';
 
 const EditionsNew: React.FC = () => {
   const { navigationItems } = useNavigation();
-  const { getButtonVariant } = useTheme();
   const toast = useToast();
   
   // Use our new custom hook
   const editionsData = useData<Edition>({
     fetcher: {
-      findAll: async (filters, pagination, sorting) => {
+      findAll: async () => {
         // Mock implementation - replace with actual API call
         return [
           { id: '1', titulo: 'Edición Especial', descripcion: 'Descripción especial', publicada: 1, created_at: '2024-01-01', pdf_url: 'pdf1.pdf', cover_url: 'cover1.jpg' },
@@ -100,7 +98,7 @@ const EditionsNew: React.FC = () => {
   };
 
   // Handle manual PDF generation
-  const handleManualPDF = async (editionId: string, editionTitle: string) => {
+  const handleManualPDF = async (_: string, editionTitle: string) => {
     try {
       setIsProcessing(true);
       
@@ -122,17 +120,7 @@ const EditionsNew: React.FC = () => {
     window.open(`/editions/${editionId}/preview`, '_blank');
   };
 
-  // Format date
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'Sin fecha';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-MX', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
+  
   // Get status badge
   const getStatusBadge = (edition: Edition) => {
     if (edition.pdf_url) return { text: 'PDF Disponible', variant: 'success' as const };
@@ -408,7 +396,7 @@ const EditionsNew: React.FC = () => {
             </div>
           )}
 
-          {inspectorMode === 'create' && (
+          {inspectorMode === 'view' && (
             <div className="inspector-actions">
               <button className="btn-ghost" onClick={() => setIsInspectorOpen(false)}>
                 Cancelar

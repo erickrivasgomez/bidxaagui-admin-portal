@@ -3,7 +3,6 @@ import { UniversalLayout } from '../components/layout/UniversalLayout';
 import { Inspector } from '../components/layout/Inspector';
 import { ContentCard } from '../components/ui/ContentCard';
 import { useNavigation } from '../hooks/useNavigation';
-import { useTheme } from '../hooks/useTheme';
 import { useCampaigns } from '../core/modules/antroponomadas/application/useCampaigns';
 import { getSubscribersStatsUseCase } from '../core/modules/antroponomadas/infrastructure/antroponomadas.dependencies';
 import { NEWSLETTER_TEMPLATE } from '../templates/newsletter';
@@ -11,14 +10,13 @@ import type { Campaign } from '../core/modules/antroponomadas/domain/campaign.mo
 import './CampaignsNew.css';
 
 const CampaignsNew: React.FC = () => {
-  const { navigationItems, handleNavigate } = useNavigation();
-  const { getButtonVariant, getStatusColor } = useTheme();
+  const { navigationItems } = useNavigation();
   const { campaigns, loading, createCampaign, updateCampaign, deleteCampaign, sendCampaign, sendTestCampaign } = useCampaigns();
   
   const [recipientCount, setRecipientCount] = useState(0);
   const [isInspectorOpen, setIsInspectorOpen] = useState(false);
   const [inspectorMode, setInspectorMode] = useState<'create' | 'edit'>('create');
-  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+  const [, setSelectedCampaign] = useState<Campaign | null>(null);
   const [formData, setFormData] = useState({
     id: '',
     subject: '',
@@ -257,6 +255,7 @@ const CampaignsNew: React.FC = () => {
             </div>
           ) : campaigns && campaigns.length > 0 ? (
             <div className="campaigns-grid">
+              {campaigns.map((campaign) => (
                 <ContentCard
                   key={campaign.id}
                   title={campaign.subject}

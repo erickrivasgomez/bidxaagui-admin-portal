@@ -2,23 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { UniversalLayout } from '../components/layout/UniversalLayout';
 import { Inspector } from '../components/layout/Inspector';
 import { ContentCard } from '../components/ui/ContentCard';
-import { DataStateWrapper, EmptyState, LoadingState } from '../components/ui/DataStates';
+import { DataStateWrapper } from '../components/ui/DataStates';
 import { useToast } from '../components/ui/Toast';
 import { useNavigation } from '../hooks/useNavigation';
-import { useTheme } from '../hooks/useTheme';
 import { useData } from '../hooks/useData';
 import type { Supplier, CreateSupplierRequest } from '../core/modules/laboratorio/domain/supplier.model';
 import './LabsSuppliersNew.css';
 
 const LabsSuppliersNew: React.FC = () => {
   const { navigationItems } = useNavigation();
-  const { getButtonVariant } = useTheme();
   const toast = useToast();
   
   // Use our new custom hook
   const suppliersData = useData<Supplier>({
     fetcher: {
-      findAll: async (filters, pagination, sorting) => {
+      findAll: async () => {
         // Mock implementation - replace with actual API call
         return [
           { id: '1', name: 'Proveedor A', city: 'Ciudad A', phone: '123-456-7890' },

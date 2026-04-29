@@ -1,13 +1,13 @@
 import React from 'react';
 import { UniversalLayout } from '../components/layout/UniversalLayout';
+import { ContentCard } from '../components/ui/ContentCard';
 import { useNavigation } from '../hooks/useNavigation';
 import { useAuthStore } from '../store/authStore';
-import { ContentCard } from '../components/ui/ContentCard';
 import './NewDashboard.css';
 
 const NewDashboard: React.FC = () => {
   const { user } = useAuthStore();
-  const { navigationItems, handleNavigate, isActivePath } = useNavigation();
+  const { navigationItems, handleNavigate } = useNavigation();
 
   const quickActions = [
     {
@@ -93,7 +93,7 @@ const NewDashboard: React.FC = () => {
       user={{
         name: user?.name || 'Administrador',
         email: user?.email || 'admin@bidxaagui.com',
-        avatar: user?.avatar
+        // avatar: user?.avatar
       }}
     >
       <div className="new-dashboard">
@@ -129,7 +129,7 @@ const NewDashboard: React.FC = () => {
                   key={activity.id}
                   title={activity.title}
                   description={activity.description}
-                  status={activity.status}
+                  status={activity.status === 'completed' ? 'success' : activity.status}
                   density="compact"
                   actions={[
                     {

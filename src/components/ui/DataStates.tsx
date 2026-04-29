@@ -1,5 +1,4 @@
 import React from 'react';
-import { useTheme } from '../../hooks/useTheme';
 import './DataStates.css';
 
 // Data State Types
@@ -55,7 +54,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   secondaryAction,
   illustration
 }) => {
-  const { getStatusColor } = useTheme();
+  // const { getStatusColor } = useTheme();
 
   const getDefaultIcon = () => {
     switch (type) {

@@ -19,7 +19,7 @@ export const Inspector: React.FC<InspectorProps> = ({
   onClose,
   title,
   mode = 'view',
-  entity,
+  // entity: any,
   children,
   actions,
   width = 400,
