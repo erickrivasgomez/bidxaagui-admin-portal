@@ -1,0 +1,474 @@
+/* EditionsNew Page Styles */
+
+.editions-new {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 24px;
+  background: var(--background);
+}
+
+/* Header */
+.editions-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.editions-title h1 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0 0 8px 0;
+}
+
+.editions-title p {
+  font-size: var(--font-size-md);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.editions-header .btn-premium {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  font-weight: var(--font-weight-medium);
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+/* Editions Content */
+.editions-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Editions Grid */
+.editions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+/* Edition Cover */
+.edition-cover {
+  width: 60px;
+  height: 80px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--surface-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.edition-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cover-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--text-tertiary);
+}
+
+/* Inspector Lightbox */
+.inspector-lightbox {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 20px;
+}
+
+.lightbox-stage {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-secondary);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.lightbox-stage .nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  z-index: 10;
+}
+
+.lightbox-stage .nav-btn:hover:not(:disabled) {
+  background: var(--surface-tertiary);
+  border-color: var(--primary);
+}
+
+.lightbox-stage .nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.lightbox-stage .nav-btn.prev {
+  left: 16px;
+}
+
+.lightbox-stage .nav-btn.next {
+  right: 16px;
+}
+
+.image-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.main-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.lightbox-info {
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.thumbnails-strip {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  background: var(--surface-secondary);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.thumb-item {
+  flex-shrink: 0;
+  width: 60px;
+  height: 80px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all var(--transition-fast);
+}
+
+.thumb-item:hover {
+  border-color: var(--border);
+}
+
+.thumb-item.active {
+  border-color: var(--primary);
+}
+
+.thumb-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Inspector Form */
+.inspector-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+.textarea {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  resize: vertical;
+  transition: all var(--transition-fast);
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--input-border-focus);
+  box-shadow: 0 0 0 3px rgba(134, 132, 102, 0.1);
+}
+
+.textarea::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* File Upload */
+.file-upload {
+  position: relative;
+}
+
+.file-input {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.file-upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-secondary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  gap: 8px;
+}
+
+.file-upload-label:hover {
+  border-color: var(--primary);
+  background: var(--surface-tertiary);
+  color: var(--text-primary);
+}
+
+.file-upload-label svg {
+  width: 24px;
+  height: 24px;
+}
+
+.file-upload-label span {
+  font-size: var(--font-size-sm);
+  text-align: center;
+}
+
+.inspector-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  margin-top: 24px;
+}
+
+.inspector-actions .btn-ghost {
+  flex: 1;
+}
+
+.inspector-actions .btn-primary {
+  flex: 1;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .editions-new {
+    padding: 16px;
+  }
+  
+  .editions-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .editions-header .btn-premium {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .editions-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .lightbox-stage .nav-btn {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .lightbox-stage .nav-btn.prev {
+    left: 8px;
+  }
+  
+  .lightbox-stage .nav-btn.next {
+    right: 8px;
+  }
+  
+  .image-wrapper {
+    padding: 12px;
+  }
+  
+  .thumbnails-strip {
+    padding: 8px;
+    gap: 6px;
+  }
+  
+  .thumb-item {
+    width: 50px;
+    height: 70px;
+  }
+  
+  .inspector-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .inspector-actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .editions-new {
+    padding: 12px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .lightbox-stage {
+    min-height: 300px;
+  }
+  
+  .lightbox-stage .nav-btn {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .lightbox-stage .nav-btn.prev {
+    left: 4px;
+  }
+  
+  .lightbox-stage .nav-btn.next {
+    right: 4px;
+  }
+  
+  .image-wrapper {
+    padding: 8px;
+  }
+  
+  .thumbnails-strip {
+    padding: 6px;
+    gap: 4px;
+  }
+  
+  .thumb-item {
+    width: 40px;
+    height: 60px;
+  }
+  
+  .file-upload-label {
+    padding: 24px;
+  }
+  
+  .file-upload-label svg {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .file-upload-label span {
+    font-size: 12px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .editions-header,
+  .inspector-actions .btn-ghost {
+    display: none;
+  }
+  
+  .editions-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .lightbox-stage {
+    background: white;
+  }
+  
+  .lightbox-stage .nav-btn {
+    display: none;
+  }
+  
+  .main-image {
+    box-shadow: none;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .edition-cover,
+  .thumb-item {
+    border: 2px solid var(--border);
+  }
+  
+  .lightbox-stage .nav-btn {
+    border-width: 2px;
+  }
+  
+  .file-upload-label {
+    border-width: 3px;
+    border-style: solid;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .lightbox-stage .nav-btn,
+  .thumb-item,
+  .file-upload-label {
+    transition: none;
+  }
+}
