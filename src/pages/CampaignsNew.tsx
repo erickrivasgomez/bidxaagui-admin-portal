@@ -257,7 +257,6 @@ const CampaignsNew: React.FC = () => {
             </div>
           ) : campaigns && campaigns.length > 0 ? (
             <div className="campaigns-grid">
-              {campaigns.map(campaign => (
                 <ContentCard
                   key={campaign.id}
                   title={campaign.subject}

@@ -24,6 +24,10 @@ interface ToastContextType {
   addToast: (toast: Omit<ToastMessage, 'id'>) => string;
   removeToast: (id: string) => void;
   clearToasts: () => void;
+  success: (title: string, description?: string, options?: Partial<Omit<ToastMessage, 'id' | 'type' | 'title' | 'description'>>) => void;
+  error: (title: string, description?: string, options?: Partial<Omit<ToastMessage, 'id' | 'type' | 'title' | 'description'>>) => void;
+  warning: (title: string, description?: string, options?: Partial<Omit<ToastMessage, 'id' | 'type' | 'title' | 'description'>>) => void;
+  info: (title: string, description?: string, options?: Partial<Omit<ToastMessage, 'id' | 'type' | 'title' | 'description'>>) => void;
 }
 
 const ToastContext = createContext<ToastContextType | null>(null);
@@ -65,8 +69,25 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setToasts([]);
   };
 
+  // Convenience methods
+  const success = (title: string, description?: string, options?: Partial<Omit<ToastMessage, 'id' | 'type' | 'title' | 'description'>>) => {
+    addToast({ type: 'success', title, description, ...options });
+  };
+
+  const error = (title: string, description?: string, options?: Partial<Omit<ToastMessage, 'id' | 'type' | 'title' | 'description'>>) => {
+    addToast({ type: 'error', title, description, duration: 0, ...options }); // Errors are persistent by default
+  };
+
+  const warning = (title: string, description?: string, options?: Partial<Omit<ToastMessage, 'id' | 'type' | 'title' | 'description'>>) => {
+    addToast({ type: 'warning', title, description, ...options });
+  };
+
+  const info = (title: string, description?: string, options?: Partial<Omit<ToastMessage, 'id' | 'type' | 'title' | 'description'>>) => {
+    addToast({ type: 'info', title, description, ...options });
+  };
+
   return (
-    <ToastContext.Provider value={{ toasts, addToast, removeToast, clearToasts }}>
+    <ToastContext.Provider value={{ toasts, addToast, removeToast, clearToasts, success, error, warning, info }}>
       {children}
       <ToastContainer />
     </ToastContext.Provider>

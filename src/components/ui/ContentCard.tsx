@@ -7,10 +7,11 @@ interface ActionItem {
   icon?: React.ReactNode;
   onClick: () => void;
   variant?: 'primary' | 'secondary' | 'danger';
+  disabled?: boolean;
 }
 
 interface ContentCardProps {
-  title: string;
+  title: string | number;
   subtitle?: string;
   description?: string;
   actions?: ActionItem[];
@@ -18,7 +19,7 @@ interface ContentCardProps {
   onClick?: () => void;
   icon?: React.ReactNode;
   badge?: string | number;
-  status?: 'active' | 'inactive' | 'pending' | 'error';
+  status?: 'active' | 'inactive' | 'pending' | 'error' | 'success' | 'primary' | 'secondary' | 'warning' | 'danger';
   children?: React.ReactNode;
 }
 

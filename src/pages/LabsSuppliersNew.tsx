@@ -16,11 +16,15 @@ const LabsSuppliersNew: React.FC = () => {
   const toast = useToast();
   
   // Use our new custom hook
-  const suppliersData = useData({
+  const suppliersData = useData<Supplier>({
     fetcher: {
       findAll: async (filters, pagination, sorting) => {
         // Mock implementation - replace with actual API call
-        return [];
+        return [
+          { id: '1', name: 'Proveedor A', city: 'Ciudad A', phone: '123-456-7890' },
+          { id: '2', name: 'Proveedor B', city: 'Ciudad B', phone: '098-765-4321' },
+          { id: '3', name: 'Proveedor C', city: 'Ciudad C', phone: '' }
+        ];
       },
       create: async (item) => {
         // Mock implementation
@@ -28,12 +32,12 @@ const LabsSuppliersNew: React.FC = () => {
       },
       update: async (id, updates) => {
         // Mock implementation
-        return { id, ...updates };
+        return { id, ...updates } as Supplier;
       },
       delete: async () => {
         // Mock implementation
       },
-      count: async () => 0
+      count: async () => 3
     },
     initialSorting: { field: 'name', direction: 'asc' },
     initialPageSize: 25

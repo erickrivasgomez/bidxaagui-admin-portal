@@ -9,33 +9,44 @@ import { useTheme } from '../hooks/useTheme';
 import { useData } from '../hooks/useData';
 import './SubscribersNew.css';
 
+interface Subscriber {
+  id: string;
+  email: string;
+  name: string;
+  created_at: string;
+}
+
 const SubscribersNew: React.FC = () => {
   const { navigationItems } = useNavigation();
   const { getButtonVariant } = useTheme();
   const toast = useToast();
   
   // Use our new custom hook
-  const subscribersData = useData({
+  const subscribersData = useData<Subscriber>({
     fetcher: {
       findAll: async (filters, pagination, sorting) => {
         // Mock implementation - replace with actual API call
-        return [];
+        return [
+          { id: '1', email: 'user1@example.com', name: 'Usuario Uno', created_at: '2024-01-01' },
+          { id: '2', email: 'user2@example.com', name: 'Usuario Dos', created_at: '2024-01-15' },
+          { id: '3', email: 'user3@example.com', name: 'Usuario Tres', created_at: '2024-02-01' }
+        ];
       },
       create: async (item) => {
         // Mock implementation
-        return { ...item, id: Date.now().toString() };
+        return { ...item, id: Date.now().toString() } as Subscriber;
       },
       update: async (id, updates) => {
         // Mock implementation
-        return { id, ...updates };
+        return { id, ...updates } as Subscriber;
       },
       delete: async () => {
         // Mock implementation
       },
-      count: async () => 0
+      count: async () => 3
     },
-    initialSorting: { field: 'subscribed_at', direction: 'desc' },
-    initialPageSize: 25
+    initialSorting: { field: 'created_at', direction: 'desc' },
+    initialPageSize: 20
   });
 
   const {

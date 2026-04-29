@@ -16,24 +16,27 @@ const EditionsNew: React.FC = () => {
   const toast = useToast();
   
   // Use our new custom hook
-  const editionsData = useData({
+  const editionsData = useData<Edition>({
     fetcher: {
       findAll: async (filters, pagination, sorting) => {
         // Mock implementation - replace with actual API call
-        return [];
+        return [
+          { id: '1', titulo: 'Edición Especial', descripcion: 'Descripción especial', publicada: 1, created_at: '2024-01-01', pdf_url: 'pdf1.pdf', cover_url: 'cover1.jpg' },
+          { id: '2', titulo: 'Edición Regular', descripcion: 'Descripción regular', publicada: 0, created_at: '2024-01-15', pdf_url: '', cover_url: 'cover2.jpg' }
+        ];
       },
       create: async (item) => {
         // Mock implementation
-        return { ...item, id: Date.now().toString() };
+        return { ...item, id: Date.now().toString() } as Edition;
       },
       update: async (id, updates) => {
         // Mock implementation
-        return { id, ...updates };
+        return { id, ...updates } as Edition;
       },
       delete: async () => {
         // Mock implementation
       },
-      count: async () => 0
+      count: async () => 2
     },
     initialSorting: { field: 'fecha', direction: 'desc' },
     initialPageSize: 20
