@@ -1,17 +1,18 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import VerifyMagicLink from './pages/VerifyMagicLink';
-import Dashboard from './pages/Dashboard';
-import Subscribers from './pages/Subscribers';
-import Editions from './pages/Editions';
+import Dashboard from './pages/NewDashboard';
+import Subscribers from './pages/SubscribersNew';
+import Editions from './pages/EditionsNew';
 import EditionPreview from './pages/EditionPreview';
-import Campaigns from './pages/Campaigns';
+import Campaigns from './pages/CampaignsNew';
 import AntroponomadasHub from './pages/AntroponomadasHub';
 import LabHub from './pages/LabHub';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicOnlyRoute from './components/PublicOnlyRoute';
 import { useAuthStore } from './store/authStore';
 import { LabsIndex } from './pages/labs/LabsIndex';
+import LabsSuppliersNew from './pages/LabsSuppliersNew';
 import './App.css';
 
 function App() {
@@ -88,7 +89,7 @@ function App() {
           path="/lab/proveedores"
           element={
             <ProtectedRoute>
-              <LabsIndex />
+              <LabsSuppliersNew />
             </ProtectedRoute>
           }
         />
