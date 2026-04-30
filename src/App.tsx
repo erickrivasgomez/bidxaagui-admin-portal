@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import VerifyMagicLink from './pages/VerifyMagicLink';
-import Dashboard from './pages/NewDashboard';
 import Subscribers from './pages/SubscribersNew';
 import Editions from './pages/EditionsNew';
 import EditionPreview from './pages/EditionPreview';
@@ -33,12 +32,12 @@ function App() {
           <Route path="/auth/verify" element={<VerifyMagicLink />} />
         </Route>
 
-        {/* Protected Routes - Main Dashboard */}
+        {/* Protected Routes - Main Management */}
         <Route
-          path="/dashboard"
+          path="/management"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <Navigate to="/management/labs/suppliers" replace />
             </ProtectedRoute>
           }
         />
@@ -154,7 +153,7 @@ function App() {
           path="*"
           element={
             isAuthenticated ? (
-              <Navigate to="/dashboard" replace />
+              <Navigate to="/management/labs/suppliers" replace />
             ) : (
               <Navigate to="/login" replace />
             )
