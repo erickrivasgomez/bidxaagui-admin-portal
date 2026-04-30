@@ -13,6 +13,7 @@ import PublicOnlyRoute from './components/PublicOnlyRoute';
 import { useAuthStore } from './store/authStore';
 import { LabsIndex } from './pages/labs/LabsIndex';
 import LabsSuppliersNew from './pages/LabsSuppliersNew';
+import ProvidersPage from './pages/management/labs/suppliers/ProvidersPage';
 import './App.css';
 
 function App() {
@@ -90,6 +91,16 @@ function App() {
           element={
             <ProtectedRoute>
               <LabsSuppliersNew />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Protected Routes - Management Module */}
+        <Route
+          path="/management/labs/suppliers"
+          element={
+            <ProtectedRoute>
+              <ProvidersPage />
             </ProtectedRoute>
           }
         />
