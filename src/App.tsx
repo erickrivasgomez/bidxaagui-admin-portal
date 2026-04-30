@@ -13,6 +13,7 @@ import { useAuthStore } from './store/authStore';
 import { LabsIndex } from './pages/labs/LabsIndex';
 import LabsSuppliersNew from './pages/LabsSuppliersNew';
 import ProvidersPage from './pages/management/labs/suppliers/ProvidersPage';
+import { ManagementLayout } from './pages/management';
 import './App.css';
 
 function App() {
@@ -96,13 +97,15 @@ function App() {
 
         {/* Protected Routes - Management Module */}
         <Route
-          path="/management/labs/suppliers"
+          path="/management"
           element={
             <ProtectedRoute>
-              <ProvidersPage />
+              <ManagementLayout />
             </ProtectedRoute>
           }
-        />
+        >
+          <Route path="labs/suppliers" element={<ProvidersPage />} />
+        </Route>
 
         {/* Protected Preview Route */}
         <Route
