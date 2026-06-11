@@ -6,6 +6,11 @@ import PublicOnlyRoute from './components/PublicOnlyRoute';
 import { useAuthStore } from './store/authStore';
 import ProvidersPage from './pages/management/labs/suppliers/ProvidersPage';
 import { ManagementLayout } from './pages/management';
+import NewDashboard from './pages/NewDashboard';
+import Editions from './pages/Editions';
+import CampaignsNew from './pages/CampaignsNew';
+import SubscribersNew from './pages/SubscribersNew';
+import EditionPreview from './pages/EditionPreview';
 import './App.css';
 
 function App() {
@@ -19,6 +24,52 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/auth/verify" element={<VerifyMagicLink />} />
         </Route>
+
+        {/* Protected Routes */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <NewDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/antroponomadas/editions"
+          element={
+            <ProtectedRoute>
+              <Editions />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/antroponomadas/campaigns"
+          element={
+            <ProtectedRoute>
+              <CampaignsNew />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/antroponomadas/subscribers"
+          element={
+            <ProtectedRoute>
+              <SubscribersNew />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/editions/:id/preview"
+          element={
+            <ProtectedRoute>
+              <EditionPreview />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Protected Routes - Management Module */}
         <Route
@@ -38,7 +89,7 @@ function App() {
           path="*"
           element={
             isAuthenticated ? (
-              <Navigate to="/management/labs/suppliers" replace />
+              <Navigate to="/dashboard" replace />
             ) : (
               <Navigate to="/login" replace />
             )
