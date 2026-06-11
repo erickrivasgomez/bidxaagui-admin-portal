@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { UniversalLayout } from '../components/layout/UniversalLayout';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { ModuleLayout, NavigationItem } from '../components/ModuleLayout';
 import { Inspector } from '../components/layout/Inspector';
 import { ContentCard } from '../components/ui/ContentCard';
-import { useNavigation } from '../hooks/useNavigation';
+import { useDeviceType } from '../hooks/useDeviceType';
 import { useCampaigns } from '../core/modules/antroponomadas/application/useCampaigns';
 import { getSubscribersStatsUseCase } from '../core/modules/antroponomadas/infrastructure/antroponomadas.dependencies';
 import { NEWSLETTER_TEMPLATE } from '../templates/newsletter';
@@ -10,8 +11,38 @@ import type { Campaign } from '../core/modules/antroponomadas/domain/campaign.mo
 import './CampaignsNew.css';
 
 const CampaignsNew: React.FC = () => {
-  const { navigationItems } = useNavigation();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const deviceType = useDeviceType();
   const { campaigns, loading, createCampaign, updateCampaign, deleteCampaign, sendCampaign, sendTestCampaign } = useCampaigns();
+
+  // Navigation items for ModuleLayout
+  const navigation: NavigationItem[] = [
+    {
+      id: 'dashboard',
+      label: 'Dashboard',
+      path: '/dashboard',
+      icon: '📊'
+    },
+    {
+      id: 'editions',
+      label: 'Ediciones',
+      path: '/antroponomadas/editions',
+      icon: '📚'
+    },
+    {
+      id: 'campaigns',
+      label: 'Campañas',
+      path: '/antroponomadas/campaigns',
+      icon: '📧'
+    },
+    {
+      id: 'subscribers',
+      label: 'Suscriptores',
+      path: '/antroponomadas/subscribers',
+      icon: '👥'
+    }
+  ];
   
   const [recipientCount, setRecipientCount] = useState(0);
   const [isInspectorOpen, setIsInspectorOpen] = useState(false);
@@ -169,12 +200,12 @@ const CampaignsNew: React.FC = () => {
   };
 
   return (
-    <UniversalLayout
-      navigation={navigationItems}
-      user={{
-        name: 'Administrador',
-        email: 'admin@bidxaagui.com'
-      }}
+    <ModuleLayout
+      title="Campañas de Email"
+      navigation={navigation}
+      onNavigate={navigate}
+      currentPath={location.pathname}
+      deviceType={deviceType}
     >
       <div className="campaigns-new">
         {/* Header */}
@@ -376,7 +407,7 @@ const CampaignsNew: React.FC = () => {
           </div>
         </Inspector>
       </div>
-    </UniversalLayout>
+    </ModuleLayout>
   );
 };
 

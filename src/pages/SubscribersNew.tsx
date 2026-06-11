@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { UniversalLayout } from '../components/layout/UniversalLayout';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { ModuleLayout, NavigationItem } from '../components/ModuleLayout';
 import { Inspector } from '../components/layout/Inspector';
 import { ContentCard } from '../components/ui/ContentCard';
 import { DataStateWrapper } from '../components/ui/DataStates';
 import { useToast } from '../components/ui/Toast';
-import { useNavigation } from '../hooks/useNavigation';
+import { useDeviceType } from '../hooks/useDeviceType';
 import { useData } from '../hooks/useData';
 import './SubscribersNew.css';
 
@@ -16,8 +17,38 @@ interface Subscriber {
 }
 
 const SubscribersNew: React.FC = () => {
-  const { navigationItems } = useNavigation();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const deviceType = useDeviceType();
   const toast = useToast();
+
+  // Navigation items for ModuleLayout
+  const navigation: NavigationItem[] = [
+    {
+      id: 'dashboard',
+      label: 'Dashboard',
+      path: '/dashboard',
+      icon: '📊'
+    },
+    {
+      id: 'editions',
+      label: 'Ediciones',
+      path: '/antroponomadas/editions',
+      icon: '📚'
+    },
+    {
+      id: 'campaigns',
+      label: 'Campañas',
+      path: '/antroponomadas/campaigns',
+      icon: '📧'
+    },
+    {
+      id: 'subscribers',
+      label: 'Suscriptores',
+      path: '/antroponomadas/subscribers',
+      icon: '👥'
+    }
+  ];
   
   // Use our new custom hook
   const subscribersData = useData<Subscriber>({
@@ -229,12 +260,12 @@ const SubscribersNew: React.FC = () => {
   };
 
   return (
-    <UniversalLayout
-      navigation={navigationItems}
-      user={{
-        name: 'Administrador',
-        email: 'admin@bidxaagui.com'
-      }}
+    <ModuleLayout
+      title="Suscriptores"
+      navigation={navigation}
+      onNavigate={navigate}
+      currentPath={location.pathname}
+      deviceType={deviceType}
     >
       <div className="subscribers-new">
         {/* Header */}
@@ -526,7 +557,7 @@ const SubscribersNew: React.FC = () => {
           </div>
         </Inspector>
       </div>
-    </UniversalLayout>
+    </ModuleLayout>
   );
 };
 

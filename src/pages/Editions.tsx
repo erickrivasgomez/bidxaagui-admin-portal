@@ -1,26 +1,56 @@
 import React, { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useEditions } from '../core/modules/antroponomadas/application/useEditions';
 import { 
   getEditionPagesUseCase, 
   uploadEditionPdfUseCase, 
   uploadEditionPageUseCase 
 } from '../core/modules/antroponomadas/infrastructure/antroponomadas.dependencies';
-import { UniversalLayout } from '../components/layout/UniversalLayout';
+import { ModuleLayout, NavigationItem } from '../components/ModuleLayout';
 import { Inspector } from '../components/layout/Inspector';
 import { ContentCard } from '../components/ui/ContentCard';
 import { DataStateWrapper } from '../components/ui/DataStates';
 import { useToast } from '../components/ui/Toast';
-import { useNavigation } from '../hooks/useNavigation';
+import { useDeviceType } from '../hooks/useDeviceType';
 import { useAuthStore } from '../store/authStore';
 import type { Edition, EditionPage } from '../core/modules/antroponomadas/domain/edition.model';
 import './Editions.css';
 
 const Editions: React.FC = () => {
   const { editions, loading, error, fetchEditions, createEdition, deleteEdition } = useEditions();
-  const { navigationItems } = useNavigation();
-  const { user } = useAuthStore();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const deviceType = useDeviceType();
   const toast = useToast();
+
+  // Navigation items for ModuleLayout
+  const navigation: NavigationItem[] = [
+    {
+      id: 'dashboard',
+      label: 'Dashboard',
+      path: '/dashboard',
+      icon: '📊'
+    },
+    {
+      id: 'editions',
+      label: 'Ediciones',
+      path: '/antroponomadas/editions',
+      icon: '📚'
+    },
+    {
+      id: 'campaigns',
+      label: 'Campañas',
+      path: '/antroponomadas/campaigns',
+      icon: '📧'
+    },
+    {
+      id: 'subscribers',
+      label: 'Suscriptores',
+      path: '/antroponomadas/subscribers',
+      icon: '👥'
+    }
+  ];
 
   // Inspector & Lightbox state
   const [isInspectorOpen, setIsInspectorOpen] = useState(false);
@@ -290,12 +320,12 @@ const Editions: React.FC = () => {
   };
 
   return (
-    <UniversalLayout
-      navigation={navigationItems}
-      user={{
-        name: user?.name || 'Administrador',
-        email: user?.email || 'admin@bidxaagui.com'
-      }}
+    <ModuleLayout
+      title="Ediciones de la Revista"
+      navigation={navigation}
+      onNavigate={navigate}
+      currentPath={location.pathname}
+      deviceType={deviceType}
     >
       <div className="editions-page-container">
         {/* Header */}
@@ -795,7 +825,7 @@ const Editions: React.FC = () => {
           )}
         </Inspector>
       </div>
-    </UniversalLayout>
+    </ModuleLayout>
   );
 };
 
